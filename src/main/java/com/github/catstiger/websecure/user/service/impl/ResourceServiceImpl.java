@@ -13,11 +13,10 @@ import com.github.catstiger.common.sql.JdbcTemplateProxy;
 import com.github.catstiger.common.sql.SQLReady;
 import com.github.catstiger.common.sql.SQLRequest;
 import com.github.catstiger.common.sql.id.IdGen;
-import com.github.catstiger.websecure.user.cache.RBACache;
+import com.github.catstiger.websecure.cache.SecureObjectsCache;
 import com.github.catstiger.websecure.user.model.Resource;
 import com.github.catstiger.websecure.user.service.ResourceInitializer;
 import com.github.catstiger.websecure.user.service.ResourceService;
-import com.github.catstiger.websecure.web.SecurityJsService;
 
 @Service
 public class ResourceServiceImpl implements ResourceService {
@@ -26,13 +25,12 @@ public class ResourceServiceImpl implements ResourceService {
   @Autowired
   private PathMatcher pathMatcher;
   @Autowired
-  private RBACache bracache;
+  private SecureObjectsCache secureObjectsCache;
   @Autowired
   private IdGen idGen;
   @Autowired
   private ResourceInitializer resourceInitializer;
-  @Autowired
-  private SecurityJsService jsService;
+  
 
   // 唯一索引，不必缓存
   @Override
@@ -58,8 +56,7 @@ public class ResourceServiceImpl implements ResourceService {
     resource.setId(idGen.nextId());
     SQLReady insert = new SQLRequest(resource).insert();
     jdbcTemplate.update(insert.getSql(), insert.getArgs());
-    bracache.clearResources();// 清空缓存
-    jsService.clearCache(); // 清空js缓存
+    secureObjectsCache.clearPermissions();// 清空缓存
 
     return resource;
   }
@@ -75,9 +72,8 @@ public class ResourceServiceImpl implements ResourceService {
     jdbcTemplate.update("delete from resources where id=?", resource.getId());
 
     // 清空缓存
-    bracache.clearResources();
-    bracache.clearResourcesOfRole();
-    jsService.clearCache();
+    secureObjectsCache.clearPermissions();
+    secureObjectsCache.clearPermissionsOfAuthority();
   }
 
   @Override

@@ -27,15 +27,14 @@ import com.github.catstiger.websecure.SecureConstants;
 import com.github.catstiger.websecure.authc.AccessDecisionService;
 import com.github.catstiger.websecure.authc.AccessDeniedException;
 import com.github.catstiger.websecure.authc.Permission;
+import com.github.catstiger.websecure.cache.SecureObjectsCache;
 import com.github.catstiger.websecure.login.AccountNotFoundException;
 import com.github.catstiger.websecure.login.AccountStatusException;
 import com.github.catstiger.websecure.password.PasswordEncoder;
-import com.github.catstiger.websecure.user.cache.RBACache;
 import com.github.catstiger.websecure.user.model.Role;
 import com.github.catstiger.websecure.user.model.User;
 import com.github.catstiger.websecure.user.service.RoleService;
 import com.github.catstiger.websecure.user.service.UserService;
-import com.github.catstiger.websecure.web.SecurityJsService;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -49,16 +48,15 @@ public class UserServiceImpl implements UserService {
   @Autowired
   private AccessDecisionService accessDecisionService;
   @Autowired
-  private RBACache rbacache;
+  private SecureObjectsCache secureObjectsCache;
+  
   @Autowired
   private IdGen idGen;
-  @Autowired
-  private SecurityJsService jsService;
 
   @Override
   @Transactional(readOnly = true)
   public User byName(String name) throws AccountNotFoundException {
-    User user = rbacache.getUser(name);
+    User user = secureObjectsCache.getPrincipal(name);
     if (user != null) {
       return user;
     }
@@ -78,8 +76,8 @@ public class UserServiceImpl implements UserService {
       throw new AccountStatusException("用户已经锁定");
     }
     user = this.simplify(user);
-    rbacache.putUser(user);
-
+    secureObjectsCache.putPrincipal(user);
+    
     return user;
   }
 
@@ -170,8 +168,7 @@ public class UserServiceImpl implements UserService {
         throw new IllegalStateException("系统用户不可锁定");
       }
       sqlExecutor.update("update users set is_locked=true, lock_time=? where username=?", DateTime.now().toDate(), username);
-      rbacache.evictUser(username);
-      jsService.evictCache(username);
+      secureObjectsCache.evictPrincipal(username);
     }
   }
 
@@ -182,8 +179,7 @@ public class UserServiceImpl implements UserService {
     Assert.isTrue(StringUtils.isNotBlank(username), "Username must not be blank");
 
     sqlExecutor.update("update users set is_locked=false, lock_time=? where username=?", DateTime.now().toDate(), username);
-    rbacache.evictUser(username);
-    jsService.evictCache(username);
+    secureObjectsCache.evictPrincipal(username);
   }
 
   @Override
@@ -202,9 +198,8 @@ public class UserServiceImpl implements UserService {
 
     if (c == 0L) {
       sqlExecutor.update("insert into users_roles(users_id,roles_id) values(?,?)", user.getId(), role.getId());
-      rbacache.evictUser(username);
-      rbacache.evictRolesOfUser(username);
-      jsService.evictCache(username);
+      secureObjectsCache.evictPrincipal(username);
+      secureObjectsCache.evictAuthoritiesOfPrincipal(username);
     }
 
     return user;
@@ -226,9 +221,8 @@ public class UserServiceImpl implements UserService {
 
     if (c > 0L) {
       sqlExecutor.update("delete from users_roles where users_id=? and roles_id=?", user.getId(), role.getId());
-      rbacache.evictUser(username);
-      rbacache.evictRolesOfUser(username);
-      jsService.evictCache(username);
+      secureObjectsCache.evictPrincipal(username);
+      secureObjectsCache.evictAuthoritiesOfPrincipal(username);
     }
     return user;
   }
@@ -238,7 +232,8 @@ public class UserServiceImpl implements UserService {
   public Collection<Role> getRolesByUser(User user) {
     Assert.notNull(user, "User must not be null.");
 
-    Collection<Role> rolesInCache = rbacache.getRolesOfUser(user.getUsername());
+    @SuppressWarnings("unchecked")
+    Collection<Role> rolesInCache = (Collection<Role>) secureObjectsCache.getAuthoritiesOfPrincipal(user.getUsername());
     if (CollectionUtils.isNotEmpty(rolesInCache)) {
       return rolesInCache;
     }
@@ -249,7 +244,7 @@ public class UserServiceImpl implements UserService {
           new BeanPropertyRowMapper<Role>(Role.class), user.getId());
 
       logger.debug("获取用户{}的角色{}。", user.getName(), roles);
-      rbacache.putRolesOfUser(user.getUsername(), roles);
+      secureObjectsCache.putAuthoritiesOfPrincipal(user.getUsername(), roles);
       return roles;
     }
     return Collections.emptySet();
@@ -292,7 +287,7 @@ public class UserServiceImpl implements UserService {
 
     if (StringUtils.equals(user.getPassword(), encodePasswrod)) {
       sqlExecutor.update("update users set password=? where id=?", passwordEncoder.encode(password), user.getId());
-      rbacache.evictUser(username);
+      secureObjectsCache.evictPrincipal(username);
     } else {
       throw Exceptions.unchecked("原密码不正确！");
     }
@@ -305,7 +300,7 @@ public class UserServiceImpl implements UserService {
     Assert.notNull(user, "用户不存在。");
 
     sqlExecutor.update("update users set password=? where id=?", passwordEncoder.encode(password), user.getId());
-    rbacache.evictUser(username);
+    secureObjectsCache.evictPrincipal(username);
   }
 
   @Override
@@ -315,8 +310,7 @@ public class UserServiceImpl implements UserService {
     Assert.isTrue(StringUtils.isNotBlank(username), "Username must not be blank");
 
     sqlExecutor.update("update users set is_enabled=true where username=?", username);
-    rbacache.evictUser(username);
-    jsService.evictCache(username);
+    secureObjectsCache.evictPrincipal(username);
   }
 
   @Override
@@ -331,8 +325,7 @@ public class UserServiceImpl implements UserService {
         throw new IllegalStateException("系统用户不可禁用");
       }
       sqlExecutor.update("update users set is_enabled=false where username=?", username);
-      rbacache.evictUser(username);
-      jsService.evictCache(username);
+      secureObjectsCache.evictPrincipal(username);
     }
   }
 
@@ -385,9 +378,8 @@ public class UserServiceImpl implements UserService {
     if (StringUtils.isBlank(username)) {
       throw new IllegalStateException("用户不存在！");
     }
-    rbacache.evictUser(username);
-    rbacache.evictRolesOfUser(username);
-    jsService.evictCache(username);
+    secureObjectsCache.evictPrincipal(username);
+    secureObjectsCache.evictAuthoritiesOfPrincipal(username);
 
     sqlExecutor.update("update users set username=?, mobile=? where id=?", user.getUsername(), user.getMobile(), user.getId());
 

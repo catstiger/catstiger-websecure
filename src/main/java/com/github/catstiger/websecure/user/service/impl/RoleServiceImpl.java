@@ -21,12 +21,11 @@ import com.github.catstiger.common.sql.SQLRequest;
 import com.github.catstiger.common.sql.id.IdGen;
 import com.github.catstiger.common.util.Exceptions;
 import com.github.catstiger.websecure.authc.Permission;
-import com.github.catstiger.websecure.user.cache.RBACache;
+import com.github.catstiger.websecure.cache.SecureObjectsCache;
 import com.github.catstiger.websecure.user.model.Resource;
 import com.github.catstiger.websecure.user.model.Role;
 import com.github.catstiger.websecure.user.service.ResourceService;
 import com.github.catstiger.websecure.user.service.RoleService;
-import com.github.catstiger.websecure.web.SecurityJsService;
 
 @Service
 public class RoleServiceImpl implements RoleService {
@@ -36,11 +35,10 @@ public class RoleServiceImpl implements RoleService {
   @Autowired
   private ResourceService resourceService;
   @Autowired
-  private RBACache rbacache;
+  private SecureObjectsCache secureObjectsCache;
   @Autowired
   private IdGen idGen;
-  @Autowired
-  private SecurityJsService jsService;
+ 
 
   // 小表，而且unique索引，因此不做缓存处理
   @Override
@@ -67,7 +65,7 @@ public class RoleServiceImpl implements RoleService {
 
     SQLReady sqlReady = new SQLRequest(Role.class).entity(role).insert();
     jdbcTemplate.update(sqlReady.getSql(), sqlReady.getArgs());
-    rbacache.clearResources(); // 清除全部资源缓存
+    secureObjectsCache.clearPermissions(); // 清除全部资源缓存
     return role;
   }
 
@@ -96,10 +94,9 @@ public class RoleServiceImpl implements RoleService {
       jdbcTemplate.update("update roles set descn=?, name=? where id=?", descn, name, role.getId());
     }
 
-    rbacache.clearResourcesOfRole();
-    rbacache.clearRolesOfUser();
-    rbacache.evictViews(name);
-
+    secureObjectsCache.clearPermissionsOfAuthority();
+    secureObjectsCache.clearAuthoritiesOfPrincipal();
+    
     role.setDescn(descn);
     role.setName(name);
     return role;
@@ -124,10 +121,7 @@ public class RoleServiceImpl implements RoleService {
     jdbcTemplate.update("delete from roles where id=?", role.getId());
 
     // 删除角色，必须清空所有缓存！
-    rbacache.clearAll();
-    rbacache.evictViews(name);
-    // 清空security js缓存
-    jsService.evictCacheByRole(name);
+    secureObjectsCache.clearAll();
   }
 
   @Override
@@ -136,7 +130,7 @@ public class RoleServiceImpl implements RoleService {
     Assert.notNull(role, "Role must not be null.");
     Assert.notNull(role.getName(), "Role name must not be null.");
 
-    Collection<Permission> perms = rbacache.getResourcesOfRole(role.getName());
+    Collection<Permission> perms = secureObjectsCache.getPermissionsOfAuthority(role.getName());
     if (CollectionUtils.isNotEmpty(perms)) {
       return perms;
     }
@@ -150,7 +144,7 @@ public class RoleServiceImpl implements RoleService {
       Resource res = new Resource(r.getUrl());
       permissions.add(res);
     });
-    rbacache.putResourcesOfRole(role.getName(), permissions); // 缓存角色的授权
+    secureObjectsCache.putPermissionsOfAuthority(role.getName(), permissions); // 缓存角色的授权
     return permissions;
   }
 
@@ -186,9 +180,8 @@ public class RoleServiceImpl implements RoleService {
     if (c == 0) {
       jdbcTemplate.update("insert into roles_resources(roles_id,resources_id) values (?,?)", role.getId(), resource.getId());
 
-      rbacache.clearResources();
-      rbacache.clearResourcesOfRole();
-      jsService.evictCacheByRole(roleName);
+      secureObjectsCache.clearPermissions();
+      secureObjectsCache.clearPermissionsOfAuthority();
     }
   }
 
@@ -206,9 +199,8 @@ public class RoleServiceImpl implements RoleService {
       Resource resource = resourceService.byUrl(permission);
       jdbcTemplate.update("insert into roles_resources(roles_id, resources_id) value (?,?)", role.getId(), resource.getId());
     }
-    rbacache.clearResources();
-    rbacache.clearResourcesOfRole();
-    jsService.evictCacheByRole(roleName);
+    secureObjectsCache.clearPermissions();
+    secureObjectsCache.clearPermissionsOfAuthority();
   }
 
   @Override
@@ -222,9 +214,8 @@ public class RoleServiceImpl implements RoleService {
     if (c > 0) {
       jdbcTemplate.update("delete from roles_resources where roles_id=? and resources_id=?", role.getId(), resource.getId());
 
-      rbacache.clearResources();
-      rbacache.clearResourcesOfRole();
-      jsService.evictCacheByRole(roleName);
+      secureObjectsCache.clearPermissions();
+      secureObjectsCache.clearPermissionsOfAuthority();
     }
   }
 

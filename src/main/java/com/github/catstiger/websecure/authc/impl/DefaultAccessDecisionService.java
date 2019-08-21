@@ -24,7 +24,7 @@ import com.github.catstiger.websecure.authc.Authority;
 import com.github.catstiger.websecure.authc.FreeAccessService;
 import com.github.catstiger.websecure.authc.Permission;
 import com.github.catstiger.websecure.authc.Principal;
-import com.github.catstiger.websecure.user.cache.RBACache;
+import com.github.catstiger.websecure.cache.SecureObjectsCache;
 import com.github.catstiger.websecure.user.model.Resource;
 import com.github.catstiger.websecure.user.model.Role;
 
@@ -39,7 +39,7 @@ public class DefaultAccessDecisionService implements AccessDecisionService {
   @Autowired
   private FreeAccessService freeAccessService;
   @Autowired
-  private RBACache rbacache;
+  private SecureObjectsCache rbacache;
 
   @Override
   public void decide(Principal principal, String securedResource, Collection<Permission> configurablePermissions)
@@ -72,7 +72,7 @@ public class DefaultAccessDecisionService implements AccessDecisionService {
   @Override
   @Transactional(readOnly = true)
   public Collection<Permission> loadConfigurablePermissions() {
-    Collection<Permission> permissions = rbacache.getResources();
+    Collection<Permission> permissions = rbacache.getPermissions();
 
     if (CollectionUtils.isNotEmpty(permissions)) {
       return permissions;
@@ -90,7 +90,7 @@ public class DefaultAccessDecisionService implements AccessDecisionService {
       
       perms.add(resource);
     });
-    rbacache.putResources(perms);
+    rbacache.putPermissions(perms);
 
     return perms;
   }

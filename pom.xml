@@ -12,7 +12,7 @@
 
 	<groupId>com.github.catstiger</groupId>
 	<artifactId>catstiger-websecure</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.3</version>
 	<name>Catstiger Common</name>
 	<packaging>jar</packaging>
 
@@ -28,7 +28,7 @@
 		<dependency>
 			<groupId>com.github.catstiger</groupId>
 			<artifactId>catstiger-common</artifactId>
-			<version>0.0.1</version>
+			<version>0.0.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.auth0</groupId>
@@ -41,6 +41,41 @@
 		    <version>2.4.8</version>
 		</dependency>
 		
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-autoconfigure</artifactId>
+		    <scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+		    <groupId>com.zaxxer</groupId>
+		    <artifactId>HikariCP</artifactId>
+		    <scope>test</scope>
+		</dependency>
+		
+		<dependency>
+		    <groupId>com.h2database</groupId>
+		    <artifactId>h2</artifactId>
+		    <scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.redisson</groupId>
+			<artifactId>redisson-spring-boot-starter</artifactId>
+			<version>3.9.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 	</dependencies>
 
