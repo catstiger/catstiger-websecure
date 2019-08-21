@@ -3,7 +3,6 @@ package com.github.catstiger.websecure.user.controller;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -44,7 +43,7 @@ public class UserController extends BaseController {
   public Page index(@ModelAttribute User user) {
     Page page = page();
     SQLReady sqlReady = new SQLRequest(User.class).usingAlias(true).select().append(" WHERE 1=1 ")
-        .like(" and username like ? ", user.getUsername(), LikeMode.FULL).like(" and alias_ like ?", user.getAlias(), LikeMode.FULL)
+        .like(" and username like ? ", user.getUsername(), LikeMode.FULL)
         .orderBy(getSortName(User.class), getSortOrder(), getSortName(User.class) != null && getSortOrder() != null);
 
     List<User> rows = jdbcTemplate.queryBySqlReady(sqlReady, page, User.class);
@@ -134,9 +133,7 @@ public class UserController extends BaseController {
   @SecureResource("新建或者修改用户")
   public Map<String, Object> save(@ModelAttribute User user) {
     Assert.notNull(user, "实体类不可为空");
-    if (StringUtils.isBlank(user.getAlias())) {
-      user.setAlias(null);
-    }
+    
     try {
       if (user.getId() == null) { // 新增
         user = userService.register(user);

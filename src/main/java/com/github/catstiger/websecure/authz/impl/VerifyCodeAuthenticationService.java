@@ -5,25 +5,26 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.github.catstiger.common.util.Exceptions;
 import com.github.catstiger.common.web.WebObjectsHolder;
-import com.github.catstiger.sms.service.SmsVerifyCodeService;
 import com.github.catstiger.websecure.SecureConstants;
 import com.github.catstiger.websecure.authz.AuthenticationService;
 import com.github.catstiger.websecure.authz.AuthzToken;
+import com.github.catstiger.websecure.authz.VerifyCodeChecker;
 import com.github.catstiger.websecure.login.CredentialException;
 import com.github.catstiger.websecure.user.model.User;
 import com.github.catstiger.websecure.user.service.UserService;
 
 @Service
-public class VerifyCodeAuthenticationService implements AuthenticationService {
+public class VerifyCodeAuthenticationService implements AuthenticationService, InitializingBean {
   private static Logger logger = LoggerFactory.getLogger(VerifyCodeAuthenticationService.class);
 
-  @Autowired
-  private SmsVerifyCodeService verifyCodeService;
+  @Autowired(required = false)
+  private VerifyCodeChecker verifyCodeChecker;
   @Autowired
   private UserService userService;
   
@@ -41,7 +42,7 @@ public class VerifyCodeAuthenticationService implements AuthenticationService {
       throw new CredentialException(SecureConstants.MSG_VERIFY_CODE_MISTAKE);
     }
 
-    User user = userService.byAlias(mobile);
+    User user = userService.byMobile(mobile);
     if (user == null) {
       try {
         user = (User) userService.byName(mobile);
@@ -67,13 +68,24 @@ public class VerifyCodeAuthenticationService implements AuthenticationService {
 
   @Override
   public void verifyCredential(AuthzToken token, Object anwser) throws CredentialException {
+    if (verifyCodeChecker == null) {
+      throw new IllegalStateException("未提供VerifyCodeChecker的实现。");
+    }
+    
     if (token == null || !(token instanceof VerifyCodeAuthzToken)) {
       throw Exceptions.unchecked("错误的Token！");
     }
 
     VerifyCodeAuthzToken verifyCodeToken = (VerifyCodeAuthzToken) token;
-    if (!verifyCodeService.isCorrect(verifyCodeToken.getMobile(), verifyCodeToken.getVerifyCode())) {
+    if (!verifyCodeChecker.isCorrect(verifyCodeToken.getMobile(), verifyCodeToken.getVerifyCode())) {
       throw new CredentialException(SecureConstants.MSG_VERIFY_CODE_MISTAKE);
+    }
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    if (verifyCodeChecker == null) {
+      logger.warn("未提供VerifyCodeChecker的实现，无法进行验证码登录。");
     }
   }
 

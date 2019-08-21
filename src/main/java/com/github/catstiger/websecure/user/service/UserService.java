@@ -10,11 +10,20 @@ import com.github.catstiger.websecure.user.model.User;
 
 public interface UserService extends PrincipalService {
   /**
-   * 根据用户的别名，查询用户信息，用户的别名，通常也是用户的手机号
-   * @param alias 别名
-   * @return Instance of User, 如果不存在，返回{@code null}
+   * 根据用户名获取User实例，不论User的状态如何（是否可用、是否锁定）。
+   * <p>
+   * {@code #byNameAnyway(String)}不使用缓存，因此每次都可以取得最新的实例。
+   * </p>
+   * @param name username
+   * @return User of the name, {@code null} if not exists;
    */
-  User byAlias(String alias);
+  User getAnyway(String username);
+  
+  /**
+   * 根据Mobile查询用户信息，不论User的状态如何（是否可用、是否锁定）。
+   * @return
+   */
+  User byMobile(String mobile);
   
   /**
    * 根据用户名，查询User信息，如果存在，并且可用（enable and unlocked）,则返回User实例，否则返回null

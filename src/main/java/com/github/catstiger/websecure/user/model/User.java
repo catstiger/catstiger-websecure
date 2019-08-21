@@ -25,7 +25,6 @@ import com.github.catstiger.websecure.authc.Principal;
 public class User extends BaseEntity implements Principal {
 	private String username;
 	private String password;
-	private String alias;
 	private String host;
 	private Date registTime;
 	private Date loginTime;
@@ -92,15 +91,6 @@ public class User extends BaseEntity implements Principal {
 
 	public void setPassword(String password) {
 		this.password = password;
-	}
-
-	@Column(name = "alias_", length = 50, columnDefinition = "varchar(50) unique")
-	public String getAlias() {
-		return alias;
-	}
-
-	public void setAlias(String alternativeName) {
-		this.alias = alternativeName;
 	}
 
 	@Column(length = 30)

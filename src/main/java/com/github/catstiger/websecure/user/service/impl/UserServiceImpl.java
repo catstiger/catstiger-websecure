@@ -17,16 +17,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import com.github.catstiger.common.sql.JdbcTemplateProxy;
+import com.github.catstiger.common.sql.SQLExecutor;
 import com.github.catstiger.common.sql.SQLReady;
 import com.github.catstiger.common.sql.SQLRequest;
 import com.github.catstiger.common.sql.id.IdGen;
+import com.github.catstiger.common.sql.mapper.Mappers;
 import com.github.catstiger.common.util.Exceptions;
 import com.github.catstiger.websecure.SecureConstants;
 import com.github.catstiger.websecure.authc.AccessDecisionService;
 import com.github.catstiger.websecure.authc.AccessDeniedException;
 import com.github.catstiger.websecure.authc.Permission;
 import com.github.catstiger.websecure.login.AccountNotFoundException;
+import com.github.catstiger.websecure.login.AccountStatusException;
 import com.github.catstiger.websecure.password.PasswordEncoder;
 import com.github.catstiger.websecure.user.cache.RBACache;
 import com.github.catstiger.websecure.user.model.Role;
@@ -39,7 +41,7 @@ import com.github.catstiger.websecure.web.SecurityJsService;
 public class UserServiceImpl implements UserService {
   private static Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
   @Autowired
-  private JdbcTemplateProxy jdbcTemplate;
+  private SQLExecutor sqlExecutor;
   @Autowired
   private PasswordEncoder passwordEncoder;
   @Autowired
@@ -60,22 +62,37 @@ public class UserServiceImpl implements UserService {
     if (user != null) {
       return user;
     }
-    SQLReady sqlReady = new SQLRequest(User.class).usingAlias(true).select().append(" WHERE username=? ", name)
-        .append(" AND is_enabled=true AND is_locked=false");
+    
+    SQLReady sqlReady = SQLReady.select(User.class).where("username=?", name);
+   
     logger.debug(sqlReady.getSql());
     user = queryUser(sqlReady);
-
-    if (user != null) {
-      logger.debug("加载用户信息 {}", user);
-    } else {
+    
+    if (user == null) {
       throw new AccountNotFoundException(SecureConstants.MSG_USER_NOT_FOUND);
+    }
+    if (Boolean.FALSE.equals(user.getIsEnabled())) {
+      throw new AccountStatusException("用户不可用");
+    }
+    if (Boolean.TRUE.equals(user.getIsLocked())) {
+      throw new AccountStatusException("用户已经锁定");
     }
     user = this.simplify(user);
     rbacache.putUser(user);
 
     return user;
   }
-  
+
+  @Override
+  public User byId(Long id) {
+    return sqlExecutor.get(User.class, id);
+  }
+
+  @Override
+  public User byMobile(String mobile) {
+    SQLReady sqlReady = SQLReady.select(User.class).where("mobile=?", mobile);
+    return queryUser(sqlReady);
+  }
 
   @Override
   public User byNameQuietly(String username) {
@@ -86,46 +103,10 @@ public class UserServiceImpl implements UserService {
       return null;
     }
   }
-  
-  /**
-   * Query userid by username
-   */
-  public Long idByUsername(String username) {
-    User user = this.byNameQuietly(username);
-    return (user != null) ? user.getId() : null;
-  }
-
 
   @Override
-  @Transactional(readOnly = true)
-  public User byAlias(String alias) {
-    SQLReady sqlReady = new SQLRequest(User.class).usingAlias(true).select().append("where alias_=?", alias);
-    return queryUser(sqlReady);
-  }
-
-  /**
-   * 根据用户名获取User实例，不论User的状态如何（是否可用、是否锁定）。
-   * <p>
-   * {@code #byNameAnyway(String)}不使用缓存，因此每次都可以取得最新的实例。
-   * </p>
-   * @param name username
-   * @return User of the name, {@code null} if not exists;
-   */
   public User getAnyway(String name) {
-    SQLReady sqlReady = new SQLRequest(User.class).usingAlias(true).select().append(" where username=? ", name);
-    logger.debug(sqlReady.getSql());
-    return queryUser(sqlReady);
-  }
-
-  /**
-   * ID，username，alias，任意一个查询User实体
-   */
-  public User getAnyway(User user) {
-    Assert.notNull(user, "User must not be null");
-
-    SQLReady sqlReady = new SQLRequest(User.class).usingAlias(true).select().append(" where 1=1 ").appendIfExists(" and id = ?", user.getId())
-        .appendIfExists(" and username=? ", user.getUsername()).appendIfExists(" and alias_=? ", user.getAlias());
-
+    SQLReady sqlReady = SQLReady.select(User.class).where("username=?", name);
     return queryUser(sqlReady);
   }
 
@@ -143,15 +124,15 @@ public class UserServiceImpl implements UserService {
     Assert.notNull(user.getPassword(), "密码是必须的。");
     Assert.isTrue(user.getUsername().length() >= 1, "用户名长度必须大于1字符。");
 
-    Long count = jdbcTemplate.queryForObject("select count(*) from users where username=?", Long.class, user.getUsername());
+    Long count = sqlExecutor.one("select count(*) from users where username=?", Long.class, user.getUsername());
     // 验证重复的登录名
     if (count > 0) {
       throw Exceptions.unchecked("您输入的登录名'" + user.getUsername() + "'已经存在.");
     }
-    count = jdbcTemplate.queryForObject("select count(*) from users where alias_=?", Long.class, user.getAlias());
+    count = sqlExecutor.one("select count(*) from users where mobile=?", Long.class, user.getMobile());
     // 验证重复的手机号
     if (count > 0) {
-      throw Exceptions.unchecked("您输入的手机号'" + user.getAlias() + "'已经存在.");
+      throw Exceptions.unchecked("您输入的手机号'" + user.getMobile() + "'已经存在.");
     }
 
     user.setRegistTime(DateTime.now().toDate());
@@ -164,13 +145,13 @@ public class UserServiceImpl implements UserService {
     user.setId(idGen.nextId());
 
     SQLReady sqlReady = new SQLRequest(user).insert();
-    jdbcTemplate.update(sqlReady.getSql(), sqlReady.getArgs());
+    sqlExecutor.update(sqlReady.getSql(), sqlReady.getArgs());
 
     if (roles != null) {
       roles.forEach(r -> {
         Role role = roleService.byName(r);
         if (role != null) {
-          jdbcTemplate.update("insert into users_roles (users_id, roles_id) values(?,?)", user.getId(), role.getId());
+          sqlExecutor.update("insert into users_roles (users_id, roles_id) values(?,?)", user.getId(), role.getId());
         }
       });
     }
@@ -188,7 +169,7 @@ public class UserServiceImpl implements UserService {
       if (user.getIsSys() != null && user.getIsSys()) {
         throw new IllegalStateException("系统用户不可锁定");
       }
-      jdbcTemplate.update("update users set is_locked=true, lock_time=? where username=?", DateTime.now().toDate(), username);
+      sqlExecutor.update("update users set is_locked=true, lock_time=? where username=?", DateTime.now().toDate(), username);
       rbacache.evictUser(username);
       jsService.evictCache(username);
     }
@@ -200,7 +181,7 @@ public class UserServiceImpl implements UserService {
     Assert.notNull(username, "Username must not be null");
     Assert.isTrue(StringUtils.isNotBlank(username), "Username must not be blank");
 
-    jdbcTemplate.update("update users set is_locked=false, lock_time=? where username=?", DateTime.now().toDate(), username);
+    sqlExecutor.update("update users set is_locked=false, lock_time=? where username=?", DateTime.now().toDate(), username);
     rbacache.evictUser(username);
     jsService.evictCache(username);
   }
@@ -217,10 +198,10 @@ public class UserServiceImpl implements UserService {
     if (role == null) {
       throw Exceptions.unchecked("没有找到角色，" + roleName);
     }
-    Long c = jdbcTemplate.queryForObject("select count(*) from users_roles where users_id=? and roles_id=?", Long.class, user.getId(), role.getId());
+    Long c = sqlExecutor.one("select count(*) from users_roles where users_id=? and roles_id=?", Long.class, user.getId(), role.getId());
 
     if (c == 0L) {
-      jdbcTemplate.update("insert into users_roles(users_id,roles_id) values(?,?)", user.getId(), role.getId());
+      sqlExecutor.update("insert into users_roles(users_id,roles_id) values(?,?)", user.getId(), role.getId());
       rbacache.evictUser(username);
       rbacache.evictRolesOfUser(username);
       jsService.evictCache(username);
@@ -241,10 +222,10 @@ public class UserServiceImpl implements UserService {
     if (role == null) {
       throw Exceptions.unchecked("没有找到角色，" + roleName);
     }
-    Long c = jdbcTemplate.queryForObject("select count(*) from users_roles where users_id=? and roles_id=?", Long.class, user.getId(), role.getId());
+    Long c = sqlExecutor.one("select count(*) from users_roles where users_id=? and roles_id=?", Long.class, user.getId(), role.getId());
 
     if (c > 0L) {
-      jdbcTemplate.update("delete from users_roles where users_id=? and roles_id=?", user.getId(), role.getId());
+      sqlExecutor.update("delete from users_roles where users_id=? and roles_id=?", user.getId(), role.getId());
       rbacache.evictUser(username);
       rbacache.evictRolesOfUser(username);
       jsService.evictCache(username);
@@ -262,9 +243,8 @@ public class UserServiceImpl implements UserService {
       return rolesInCache;
     }
 
-    user = getAnyway(user);
     if (user != null && user.getId() != null) {
-      List<Role> roles = jdbcTemplate.query(
+      List<Role> roles = sqlExecutor.query(
           "SELECT r.id id,r.name name,r.descn descn " + " FROM roles r INNER JOIN users_roles ur ON(ur.roles_id=r.id) WHERE ur.users_id=?;",
           new BeanPropertyRowMapper<Role>(Role.class), user.getId());
 
@@ -311,7 +291,7 @@ public class UserServiceImpl implements UserService {
     Assert.notNull(user, "用户不存在。");
 
     if (StringUtils.equals(user.getPassword(), encodePasswrod)) {
-      jdbcTemplate.update("update users set password=? where id=?", passwordEncoder.encode(password), user.getId());
+      sqlExecutor.update("update users set password=? where id=?", passwordEncoder.encode(password), user.getId());
       rbacache.evictUser(username);
     } else {
       throw Exceptions.unchecked("原密码不正确！");
@@ -324,7 +304,7 @@ public class UserServiceImpl implements UserService {
     User user = this.getAnyway(username);
     Assert.notNull(user, "用户不存在。");
 
-    jdbcTemplate.update("update users set password=? where id=?", passwordEncoder.encode(password), user.getId());
+    sqlExecutor.update("update users set password=? where id=?", passwordEncoder.encode(password), user.getId());
     rbacache.evictUser(username);
   }
 
@@ -334,7 +314,7 @@ public class UserServiceImpl implements UserService {
     Assert.notNull(username, "Username must not be null");
     Assert.isTrue(StringUtils.isNotBlank(username), "Username must not be blank");
 
-    jdbcTemplate.update("update users set is_enabled=true where username=?", username);
+    sqlExecutor.update("update users set is_enabled=true where username=?", username);
     rbacache.evictUser(username);
     jsService.evictCache(username);
   }
@@ -350,7 +330,7 @@ public class UserServiceImpl implements UserService {
       if (user.getIsSys() != null && user.getIsSys()) {
         throw new IllegalStateException("系统用户不可禁用");
       }
-      jdbcTemplate.update("update users set is_enabled=false where username=?", username);
+      sqlExecutor.update("update users set is_enabled=false where username=?", username);
       rbacache.evictUser(username);
       jsService.evictCache(username);
     }
@@ -392,16 +372,16 @@ public class UserServiceImpl implements UserService {
       throw new IllegalArgumentException("用户名是必须的！");
     }
 
-    Long exists = jdbcTemplate.queryForObject("select count(*) from users where username=? and id<>?", Long.class, user.getUsername(), user.getId());
+    Long exists = sqlExecutor.one("select count(*) from users where username=? and id<>?", Long.class, user.getUsername(), user.getId());
     if (exists > 0) {
       throw new IllegalArgumentException("用户名已经存在！");
     }
-    exists = jdbcTemplate.queryForObject("select count(*) from users where alias_=? and id<>?", Long.class, user.getAlias(), user.getId());
+    exists = sqlExecutor.one("select count(*) from users where mobile=? and id<>?", Long.class, user.getMobile(), user.getId());
     if (exists > 0) {
       throw new IllegalArgumentException("用户别名/手机已经存在！");
     }
     // 清空缓存
-    String username = jdbcTemplate.queryForObject("select username from users where id=?", String.class, user.getId());
+    String username = sqlExecutor.one("select username from users where id=?", String.class, user.getId());
     if (StringUtils.isBlank(username)) {
       throw new IllegalStateException("用户不存在！");
     }
@@ -409,7 +389,7 @@ public class UserServiceImpl implements UserService {
     rbacache.evictRolesOfUser(username);
     jsService.evictCache(username);
 
-    jdbcTemplate.update("update users set username=?, alias_=? where id=?", user.getUsername(), user.getAlias(), user.getId());
+    sqlExecutor.update("update users set username=?, mobile=? where id=?", user.getUsername(), user.getMobile(), user.getId());
 
     return user;
   }
@@ -428,7 +408,6 @@ public class UserServiceImpl implements UserService {
       simplifyUser.setIsLocked(user.getIsLocked());
       simplifyUser.setLockTime(user.getLockTime());
       simplifyUser.setRegistTime(user.getRegistTime());
-      simplifyUser.setAlias(user.getAlias());
       simplifyUser.setIsSys(user.getIsSys());
 
       Collection<Role> roles = this.getRolesByUser(user);
@@ -446,13 +425,7 @@ public class UserServiceImpl implements UserService {
   }
 
   private User queryUser(SQLReady sqlReady) {
-    return jdbcTemplate.queryForObject(sqlReady.getSql(), new BeanPropertyRowMapper<User>(User.class), sqlReady.getArgs());
-  }
-
-
-  @Override
-  public User byId(Long id) {
-    return jdbcTemplate.get(User.class, id);
+    return sqlExecutor.first(sqlReady.getSql(), Mappers.byClass(User.class), sqlReady.getArgs());
   }
 
 }

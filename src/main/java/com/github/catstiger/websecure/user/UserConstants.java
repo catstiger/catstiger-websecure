@@ -25,10 +25,10 @@ public final class UserConstants {
 		return role;
 	}
 
-	private static User sysUser(String username, String alias, String password, Role... roles) {
+	private static User sysUser(String username, String mobile, String password, Role... roles) {
 		User user = new User(username, password);
-		user.setAlias(alias);
 		user.setPassword(password);
+		user.setMobile(mobile);
 		user.setIsEnabled(true);
 		user.setIsLocked(false);
 		user.setIsSys(true);
