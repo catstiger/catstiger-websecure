@@ -39,16 +39,17 @@ public class DefaultAccessDecisionService implements AccessDecisionService {
   @Autowired
   private FreeAccessService freeAccessService;
   @Autowired
-  private SecureObjectsCache rbacache;
+  private SecureObjectsCache secureObjectsCache;
 
   @Override
   public void decide(Principal principal, String securedResource, Collection<Permission> configurablePermissions)
       throws AccessDeniedException {
-    if (CollectionUtils.isEmpty(configurablePermissions)) {
-      logger.debug("没有配置任何资源，统统放行。");
+    if (freeAccessService.isFree(securedResource) || freeAccessService.permitSuper(principal) || freeAccessService.isStatic(securedResource)) {
       return;
     }
-    if (freeAccessService.isFree(securedResource) || freeAccessService.permitSuper(principal) || freeAccessService.isStatic(securedResource)) {
+    
+    if (CollectionUtils.isEmpty(configurablePermissions)) {
+      logger.debug("没有配置任何资源，统统放行。");
       return;
     }
     
@@ -72,7 +73,7 @@ public class DefaultAccessDecisionService implements AccessDecisionService {
   @Override
   @Transactional(readOnly = true)
   public Collection<Permission> loadConfigurablePermissions() {
-    Collection<Permission> permissions = rbacache.getPermissions();
+    Collection<Permission> permissions = secureObjectsCache.getPermissions();
 
     if (CollectionUtils.isNotEmpty(permissions)) {
       return permissions;
@@ -90,7 +91,7 @@ public class DefaultAccessDecisionService implements AccessDecisionService {
       
       perms.add(resource);
     });
-    rbacache.putPermissions(perms);
+    secureObjectsCache.putPermissions(perms);
 
     return perms;
   }

@@ -13,22 +13,22 @@ public final class SecureConstants {
   /**
    * 根据Name查询{@code Principal}的Cache Name
    */
-  public static final String CACHE_NAME_PRINCIPAL_BY_NAME = "PRINCIPAL_BY_NAME_";
+  public static final String CACHE_NAME_PRINCIPAL_BY_NAME = "PRINCIPAL_BY_NAME__";
   
   /**
    * 授权给某个Subject的Authoriy的缓存Name
    */
-  public static final String CACHE_NAME_AUTHORITY_OF_SUBJECT = "AUTHORITY_OF_SUBJECT_";
+  public static final String CACHE_NAME_AUTHORITY_OF_SUBJECT = "AUTHORITY_OF_SUBJECT__";
   
   /**
    * 某个Auhtority可以访问的{@code Permission}的缓存NAME
    */
-  public static final String CACHE_NAME_PERMISSION_OF_AUTHORITY = "PERMISSION_OF_AUTHORITY_";
+  public static final String CACHE_NAME_PERMISSION_OF_AUTHORITY = "PERMISSION_OF_AUTHORITY__";
   
   /**
    * 用于缓存所有配置的资源的CacheName
    */
-  public static final String CACHE_NAME_CONFIGURABLE_RESOURCES = "CONFIGURABLE_RESOURCES_";
+  public static final String CACHE_NAME_CONFIGURABLE_RESOURCES = "CONFIGURABLE_RESOURCES__";
   
   /**
    * resources缓存Key
