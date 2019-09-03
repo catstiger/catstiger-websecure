@@ -116,7 +116,7 @@ public class SimpleSubjectBuilder implements SubjectBuilder {
   private Subject token2Subject(String token, boolean isRememberMe) {
     try {
       String username = (String) tokenStrategy.verify(token);
-      UserAuthzToken authzToken = new UserAuthzToken(username, StringUtils.EMPTY, false);
+      UserAuthzToken authzToken = new UserAuthzToken(username, StringUtils.EMPTY, isRememberMe);
       DelegatingSubject subject = new DelegatingSubject(userService, authzToken);
       subject.setRememberMe(isRememberMe);
       subject.setAuthenticated(true);
