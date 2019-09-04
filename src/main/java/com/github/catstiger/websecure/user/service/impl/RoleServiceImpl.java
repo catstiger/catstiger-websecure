@@ -7,8 +7,6 @@ import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.stereotype.Service;
@@ -29,7 +27,6 @@ import com.github.catstiger.websecure.user.service.RoleService;
 
 @Service
 public class RoleServiceImpl implements RoleService {
-  private static Logger logger = LoggerFactory.getLogger(RoleServiceImpl.class);
   @Autowired
   private JdbcTemplateProxy jdbcTemplate;
   @Autowired
@@ -220,7 +217,6 @@ public class RoleServiceImpl implements RoleService {
   }
 
   private Role queryRole(SQLReady sqlReady) {
-    logger.debug(sqlReady.getSql());
     return jdbcTemplate.queryForObject(sqlReady.getSql(), new BeanPropertyRowMapper<Role>(Role.class), sqlReady.getArgs());
   }
 

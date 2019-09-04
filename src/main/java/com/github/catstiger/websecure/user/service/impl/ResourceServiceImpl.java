@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.PathMatcher;
 
-import com.github.catstiger.common.sql.JdbcTemplateProxy;
+import com.github.catstiger.common.sql.SQLExecutor;
 import com.github.catstiger.common.sql.SQLReady;
 import com.github.catstiger.common.sql.SQLRequest;
 import com.github.catstiger.common.sql.id.IdGen;
@@ -21,7 +21,7 @@ import com.github.catstiger.websecure.user.service.ResourceService;
 @Service
 public class ResourceServiceImpl implements ResourceService {
   @Autowired
-  private JdbcTemplateProxy jdbcTemplate;
+  private SQLExecutor sqlExecutor;
   @Autowired
   private PathMatcher pathMatcher;
   @Autowired
@@ -46,7 +46,7 @@ public class ResourceServiceImpl implements ResourceService {
   public Resource create(String url, String descn) {
     Assert.notNull(url, "The url must not be null.");
 
-    Long c = jdbcTemplate.queryForObject("select count(*) from resources where url=?", Long.class, url);
+    Long c = sqlExecutor.one("select count(*) from resources where url=?", Long.class, url);
 
     if (c > 0L) {
       throw new IllegalArgumentException("URL " + url + "已经存在");
@@ -55,7 +55,7 @@ public class ResourceServiceImpl implements ResourceService {
     resource.setDescn(descn);
     resource.setId(idGen.nextId());
     SQLReady insert = new SQLRequest(resource).insert();
-    jdbcTemplate.update(insert.getSql(), insert.getArgs());
+    sqlExecutor.update(insert.getSql(), insert.getArgs());
     secureObjectsCache.clearPermissions();// 清空缓存
 
     return resource;
@@ -68,8 +68,8 @@ public class ResourceServiceImpl implements ResourceService {
     if (resource == null) {
       return;
     }
-    jdbcTemplate.update("delete from roles_resources where resources_id=?", resource.getId());
-    jdbcTemplate.update("delete from resources where id=?", resource.getId());
+    sqlExecutor.update("delete from roles_resources where resources_id=?", resource.getId());
+    sqlExecutor.update("delete from resources where id=?", resource.getId());
 
     // 清空缓存
     secureObjectsCache.clearPermissions();
@@ -85,7 +85,7 @@ public class ResourceServiceImpl implements ResourceService {
   }
 
   private Resource queryResource(SQLReady sqlReady) {
-    return jdbcTemplate.queryForObject(sqlReady.getSql(), new BeanPropertyRowMapper<Resource>(Resource.class), sqlReady.getArgs());
+    return sqlExecutor.first(sqlReady.getSql(), new BeanPropertyRowMapper<Resource>(Resource.class), sqlReady.getArgs());
   }
 
   @Override
@@ -106,21 +106,21 @@ public class ResourceServiceImpl implements ResourceService {
    */
   @Transactional
   public Long saveOrUpdate(Resource resource) {
-    Resource exists = jdbcTemplate.queryForObject("select id,url,descn,parent_id parentId from resources where url=?",
+    Resource exists = sqlExecutor.first("select id,url,descn,parent_id parentId from resources where url=?",
         new BeanPropertyRowMapper<Resource>(Resource.class), resource.getUrl());
     Long id;
     if (exists != null) { // 如果存在则修改
       id = exists.getId();
       if (resource.getParentId() == null) {
-        jdbcTemplate.update("update resources set descn=?, parent_id = null where id=?", resource.getDescn(), id);
+        sqlExecutor.update("update resources set descn=?, parent_id = null where id=?", resource.getDescn(), id);
       } else {
-        jdbcTemplate.update("update resources set descn=?, parent_id = ? where id=?", resource.getDescn(), resource.getParentId(), id);
+        sqlExecutor.update("update resources set descn=?, parent_id = ? where id=?", resource.getDescn(), resource.getParentId(), id);
       }
     } else { // 不存在则insert
       id = idGen.nextId();
       resource.setId(id);
       SQLReady insert = new SQLRequest(resource).insert();
-      jdbcTemplate.update(insert.getSql(), insert.getArgs());
+      sqlExecutor.update(insert.getSql(), insert.getArgs());
     }
 
     return id;
