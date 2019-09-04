@@ -63,7 +63,6 @@ public class UserServiceImpl implements UserService {
     
     SQLReady sqlReady = SQLReady.select(User.class).where("username=?", name);
    
-    logger.debug(sqlReady.getSql());
     user = queryUser(sqlReady);
     
     if (user == null) {
