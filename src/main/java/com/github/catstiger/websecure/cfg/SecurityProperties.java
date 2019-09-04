@@ -20,26 +20,7 @@ public class SecurityProperties {
   private Integer cacheIdleSec;
 
   private Integer tokenExpirySec;
-  @Deprecated
-  private String tokenHeaderName;
-  @Deprecated
-  private String tokenParameterName;
-  @Deprecated
-  private String tokenCookieName;
-  @Deprecated
-  private String tokenSessionName;
-
-  @Deprecated
-  private String paramUsername;
-  @Deprecated
-  private String paramPassword;
-  @Deprecated
-  private String paramRememberMe;
-  @Deprecated
-  private String paramVerifyCode;
-  @Deprecated
-  private String paramMobile;
-
+  
   private Boolean permitFreeResources = true;
   private Boolean permitSuperAdmin = true;
   private String userAdmin = "admin";
@@ -98,81 +79,7 @@ public class SecurityProperties {
   public void setTokenExpirySec(Integer tokenExpirySec) {
     this.tokenExpirySec = tokenExpirySec;
   }
-  @Deprecated
-  public String getTokenHeaderName() {
-    return tokenHeaderName;
-  }
-
-  public void setTokenHeaderName(String tokenHeaderName) {
-    this.tokenHeaderName = tokenHeaderName;
-  }
-
-  /**
-   * token保存在Request的parameter中提交所使用的parameter name
-   */
-  @Deprecated
-  public String getTokenParameterName() {
-    return tokenParameterName;
-  }
-
-  public void setTokenParameterName(String tokenParameterName) {
-    this.tokenParameterName = tokenParameterName;
-  }
-
-  @Deprecated
-  public String getTokenCookieName() {
-    return tokenCookieName;
-  }
-
-  public void setTokenCookieName(String tokenCookieName) {
-    this.tokenCookieName = tokenCookieName;
-  }
-
-  @Deprecated
-  public String getParamUsername() {
-    return paramUsername;
-  }
-
-  public void setParamUsername(String paramUsername) {
-    this.paramUsername = paramUsername;
-  }
   
-  @Deprecated
-  public String getParamPassword() {
-    return paramPassword;
-  }
-
-  public void setParamPassword(String paramPassword) {
-    this.paramPassword = paramPassword;
-  }
-
-  @Deprecated
-  public String getParamRememberMe() {
-    return paramRememberMe;
-  }
-
-  public void setParamRememberMe(String paramRememberMe) {
-    this.paramRememberMe = paramRememberMe;
-  }
-
-  @Deprecated
-  public String getParamVerifyCode() {
-    return paramVerifyCode;
-  }
-
-  public void setParamVerifyCode(String paramVerifyCode) {
-    this.paramVerifyCode = paramVerifyCode;
-  }
-
-  @Deprecated
-  public String getParamMobile() {
-    return paramMobile;
-  }
-
-  public void setParamMobile(String paramMobile) {
-    this.paramMobile = paramMobile;
-  }
-
   public Boolean getPermitFreeResources() {
     return permitFreeResources;
   }
@@ -260,14 +167,6 @@ public class SecurityProperties {
 
   public void setFreeResources(List<String> freeResources) {
     this.freeResources = freeResources;
-  }
-
-  public String getTokenSessionName() {
-    return tokenSessionName;
-  }
-
-  public void setTokenSessionName(String tokenSessionName) {
-    this.tokenSessionName = tokenSessionName;
   }
 
   @Override
