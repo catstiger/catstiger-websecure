@@ -12,8 +12,8 @@
 
 	<groupId>com.github.catstiger</groupId>
 	<artifactId>catstiger-websecure</artifactId>
-	<version>0.0.5</version>
-	<name>Catstiger Common</name>
+	<version>0.0.6</version>
+	<name>Catstiger web secure</name>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -28,7 +28,7 @@
 		<dependency>
 			<groupId>com.github.catstiger</groupId>
 			<artifactId>catstiger-common</artifactId>
-			<version>0.0.4</version>
+			<version>0.0.6</version>
 		</dependency>
 		<dependency>
 			<groupId>com.auth0</groupId>
