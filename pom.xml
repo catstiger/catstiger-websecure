@@ -12,7 +12,7 @@
 
 	<groupId>com.github.catstiger</groupId>
 	<artifactId>catstiger-websecure</artifactId>
-	<version>0.0.6</version>
+	<version>0.0.8</version>
 	<name>Catstiger web secure</name>
 	<packaging>jar</packaging>
 
@@ -28,8 +28,9 @@
 		<dependency>
 			<groupId>com.github.catstiger</groupId>
 			<artifactId>catstiger-common</artifactId>
-			<version>0.0.6</version>
+			<version>0.0.8</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
@@ -40,7 +41,7 @@
 		    <artifactId>yuicompressor</artifactId>
 		    <version>2.4.8</version>
 		</dependency>
-		
+		<!-- TEST -->
 		<dependency>
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-autoconfigure</artifactId>
