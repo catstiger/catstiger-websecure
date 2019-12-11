@@ -7,6 +7,7 @@ import com.github.catstiger.websecure.SecureConstants;
 import com.github.catstiger.websecure.authz.AuthenticationService;
 import com.github.catstiger.websecure.authz.AuthenticationServiceProvider;
 import com.github.catstiger.websecure.authz.AuthzToken;
+import com.github.catstiger.websecure.authz.AuthzTokenExtractor;
 import com.github.catstiger.websecure.login.CredentialException;
 import com.github.catstiger.websecure.login.LoginException;
 import com.github.catstiger.websecure.subject.Subject;
@@ -16,10 +17,12 @@ import com.github.catstiger.websecure.user.model.User;
 public abstract class AbstractWebLoginService extends AbstractLoginService {
   @Autowired
   private AuthenticationServiceProvider authenticationServiceProvider;
+  @Autowired
+  private AuthzTokenExtractor authzTokenExtractor;
   
   @Override
   protected AuthzToken getLoginToken() {
-    return authenticationServiceProvider.getAuthenticationService().get();
+    return authzTokenExtractor.get();
   }
 
   @Override

@@ -10,7 +10,10 @@ public class UserAuthzToken implements AuthzToken, Serializable {
   private String password;
   private Boolean rememberMe;
   private String host;
-
+  private String verifyCode;
+  private String mobile;
+  private String captcha;
+  
   public UserAuthzToken() {
 
   }
@@ -90,8 +93,46 @@ public class UserAuthzToken implements AuthzToken, Serializable {
   }
 
   @Override
+  public String getMobile() {
+    return mobile;
+  }
+
+  @Override
+  public String getVerifyCode() {
+    return verifyCode;
+  }
+
+  public void setVerifyCode(String verifyCode) {
+    this.verifyCode = verifyCode;
+  }
+
+  public void setMobile(String mobile) {
+    this.mobile = mobile;
+  }
+
+  @Override
+  public String getCaptcha() {
+    return captcha;
+  }
+
+  public void setCaptcha(String captcha) {
+    this.captcha = captcha;
+  }
+  
+  @Override
+  public boolean hasVerifyCode() {
+    return verifyCode != null;
+  }
+
+  @Override
+  public boolean hasCaptcha() {
+    return captcha != null;
+  }
+
+  @Override
   public String toString() {
-    return "UserAuthzToken [username=" + username + ", password=" + password + ", rememberMe=" + rememberMe + ", host=" + host + "]";
+    return "[" + username + ", " + password + ", " + rememberMe + ", " + host + ", " + verifyCode + ", " + mobile + ", "
+        + captcha + "]";
   }
 
 }

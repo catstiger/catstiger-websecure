@@ -41,6 +41,17 @@ public final class AnonymousAuthzToken implements AuthzToken {
 		throw new UnsupportedOperationException("匿名访问不支持此操作");
 	}
 
+
+  @Override
+  public String getMobile() {
+    throw new UnsupportedOperationException("匿名访问不支持此操作");
+  }
+
+  @Override
+  public String getVerifyCode() {
+    throw new UnsupportedOperationException("匿名访问不支持此操作");
+  }
+  
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -70,5 +81,21 @@ public final class AnonymousAuthzToken implements AuthzToken {
 		}
 		return true;
 	}
+
+  @Override
+  public String getCaptcha() {
+    throw new UnsupportedOperationException("匿名访问不支持此操作");
+  }
+
+  @Override
+  public boolean hasVerifyCode() {
+    throw new UnsupportedOperationException("匿名访问不支持此操作");
+  }
+
+  @Override
+  public boolean hasCaptcha() {
+    throw new UnsupportedOperationException("匿名访问不支持此操作");
+  }
+
 
 }

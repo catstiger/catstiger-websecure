@@ -1,84 +1,44 @@
 package com.github.catstiger.websecure.authz.impl;
 
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import com.github.catstiger.common.util.Exceptions;
-import com.github.catstiger.common.web.WebObjectsHolder;
 import com.github.catstiger.websecure.SecureConstants;
-import com.github.catstiger.websecure.authz.AuthenticationService;
 import com.github.catstiger.websecure.authz.AuthzToken;
 import com.github.catstiger.websecure.authz.VerifyCodeChecker;
 import com.github.catstiger.websecure.login.CredentialException;
-import com.github.catstiger.websecure.user.model.User;
-import com.github.catstiger.websecure.user.service.UserService;
 
-@Service
-public class VerifyCodeAuthenticationService implements AuthenticationService, InitializingBean {
+@Component
+public class VerifyCodeAuthenticationService extends AbstractAuthenticationService implements InitializingBean {
   private static Logger logger = LoggerFactory.getLogger(VerifyCodeAuthenticationService.class);
 
   @Autowired(required = false)
   private VerifyCodeChecker verifyCodeChecker;
-  @Autowired
-  private UserService userService;
   
-
-  @Override
-  public AuthzToken get() {
-    HttpServletRequest request = WebObjectsHolder.getRequest();
-    
-    String mobile = request.getParameter(SecureConstants.PARAMETER_MOBILE);
-    if (StringUtils.isBlank(mobile)) {
-      request.getParameter(SecureConstants.PARAMETER_USERNAME);
-    }
-    String verifyCode = request.getParameter(SecureConstants.PARAMETER_VERIFY_CODE);
-    if (StringUtils.isBlank(verifyCode)) {
-      throw new CredentialException(SecureConstants.MSG_VERIFY_CODE_MISTAKE);
-    }
-
-    User user = userService.byMobile(mobile);
-    if (user == null) {
-      try {
-        user = (User) userService.byName(mobile);
-      } catch (Exception e) {
-        logger.error(e.getMessage());
-        return null;
-      }
-    }
-
-    String strRem = request.getParameter(SecureConstants.PARAMETER_REMEMBERME);
-    Boolean rememberMe = ("1".equals(strRem) || "on".equals(strRem) || Boolean.TRUE.toString().equals(strRem)); //1和“no”是checkbox提交的数据
-
-    VerifyCodeAuthzToken authzToken = new VerifyCodeAuthzToken();
-    authzToken.setHost(request.getRemoteHost());
-    authzToken.setMobile(mobile);
-    authzToken.setVerifyCode(verifyCode);
-    authzToken.setUsername(user.getUsername());
-    authzToken.setPassword(verifyCode);
-    authzToken.setRememberMe(rememberMe);
-
-    return authzToken;
-  }
-
   @Override
   public void verifyCredential(AuthzToken token, Object anwser) throws CredentialException {
-    if (verifyCodeChecker == null) {
-      throw new IllegalStateException("未提供VerifyCodeChecker的实现。");
-    }
-    
-    if (token == null || !(token instanceof VerifyCodeAuthzToken)) {
+    if (token == null) {
       throw Exceptions.unchecked("错误的Token！");
     }
 
-    VerifyCodeAuthzToken verifyCodeToken = (VerifyCodeAuthzToken) token;
-    if (!verifyCodeChecker.isCorrect(verifyCodeToken.getMobile(), verifyCodeToken.getVerifyCode())) {
+    //如果未提供验证器，或者未提供验证码
+    if (verifyCodeChecker == null || !token.hasVerifyCode()) {
+      if(getNext() != null) {
+        getNext().verifyCredential(token, anwser);
+      }
+      return;
+    }
+    
+    if (!verifyCodeChecker.isCorrect(token.getMobile(), token.getVerifyCode())) { //验证未通过
       throw new CredentialException(SecureConstants.MSG_VERIFY_CODE_MISTAKE);
+    } 
+    //执行下一个验证
+    if(getNext() != null) {
+      getNext().verifyCredential(token, anwser);
     }
   }
 
@@ -87,6 +47,11 @@ public class VerifyCodeAuthenticationService implements AuthenticationService, I
     if (verifyCodeChecker == null) {
       logger.warn("未提供VerifyCodeChecker的实现，无法进行验证码登录。");
     }
+  }
+
+  @Override
+  public int getOrder() {
+    return 5;
   }
 
 }

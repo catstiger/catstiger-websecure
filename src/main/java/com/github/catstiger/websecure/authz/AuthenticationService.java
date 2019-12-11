@@ -7,19 +7,26 @@ import com.github.catstiger.websecure.login.CredentialException;
  * @author samlee
  *
  */
-public interface AuthenticationService {
+public interface AuthenticationService extends Comparable<AuthenticationService> {
   /**
-   * 从HttpServletReqeust中提取用户认证信息，包括用户名、密码等。实现者根据不同的规范，从HttpServletRequest中提取数据。
-   * 实现者可以从{@code WebObjectsHolder}中获取HttpServletRequest.
-   * @return AuthzToken，如果没有任何登录信息，则返回{@code null}
-   */
-  AuthzToken get();
-  
-  /**
-   * 验证 Credential 是否正确
+   * 验证 Credential 是否正确，并且，根据 情况，决定是否
    * @param token 用户提交的{@link AutzToken}
    * @param anwser 正确答案，如果是用户名密码验证
    * @throws CredentialException 如果凭证验证失败
    */
   void verifyCredential(AuthzToken token, Object anwser) throws CredentialException;
+  
+  /**
+   * 返回下一个{@code AuthenticationService} 的实现类
+   * @return
+   */
+  AuthenticationService getNext();
+  
+  /**
+   * 设置下一个AuthenticationService的实现类
+   * @param next
+   */
+  void setNext(AuthenticationService next);
+  
+  int getOrder();
 }

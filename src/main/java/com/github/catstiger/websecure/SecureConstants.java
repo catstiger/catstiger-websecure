@@ -61,7 +61,9 @@ public final class SecureConstants {
   public static final String MSG_PASSWORD_MISTAKE = "用户名或密码错误";
   public static final String MSG_ACCESS_DENIED = "您的权限不足";
   public static final String MSG_ACCOUNT_EXPIRED = "您的账户已经过期";
-  public static final String MSG_VERIFY_CODE_MISTAKE = "验证码错误";
+  public static final String MSG_ACCOUNT_LOCKED = "您的账户被锁定";
+  public static final String MSG_VERIFY_CODE_MISTAKE = "手机验证码错误";
+  public static final String MSG_CAPTCHA_MISTAKE = "验证码错误";
   
   /**
    * Token在Http Request HEADER中的名字
@@ -82,12 +84,15 @@ public final class SecureConstants {
    * Form表单传递的HttpServletRequest的参数名称
    */
   public static final String PARAMETER_USERNAME = "username";
+  
   /**
    * Form表单传递的HttpServletRequest的参数名称
    */
   public static final String PARAMETER_PASSWORD = "password";
   
   public static final String PARAMETER_VERIFY_CODE = "vcode";
+  
+  public static final String PARAMETER_CAPTCHA = "captcha";
   
   /**
    * RememberMe请求的参数名称

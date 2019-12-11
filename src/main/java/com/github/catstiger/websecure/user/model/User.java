@@ -33,7 +33,6 @@ public class User extends BaseEntity implements Principal {
 	private Date lockTime;
 	private Boolean isSys = false;
 	private String mobile;
-	private String openId;
 
 	/**
 	 * 所具有的角色
@@ -198,16 +197,6 @@ public class User extends BaseEntity implements Principal {
 	public String toString() {
 		return username;
 	}
-
-	@Column(name = "openId", length = 48)
-	public String getOpenId() {
-		return openId;
-	}
-
-	public void setOpenId(String openId) {
-		this.openId = openId;
-	}
-	
 
   @Override
   public int hashCode() {

@@ -1,15 +1,14 @@
 package com.github.catstiger.websecure.authz.impl;
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.github.catstiger.common.web.WebObjectsHolder;
-import com.github.catstiger.websecure.SecureConstants;
 import com.github.catstiger.websecure.authz.AuthenticationService;
 import com.github.catstiger.websecure.authz.AuthenticationServiceProvider;
 
@@ -18,25 +17,39 @@ public class DefaultAuthenticationServiceProvider implements AuthenticationServi
   private static Logger logger = LoggerFactory.getLogger(DefaultAuthenticationServiceProvider.class);
   
   @Autowired
-  private CommonUserAuthenticationService commonUserAuthenticationService;
-  @Autowired
-  private VerifyCodeAuthenticationService verifyCodeAuthenticationService;
+  private List<AuthenticationService> authChain;
   
-  /**
-   * 根据{@link HttpServletRequest}是否带有参数{@link SecurityConfig#getParamVerifyCode()}, 决定是使用{@link VerifyCodeAuthenticationService}
-   * 还是{@link CommonUserAuthenticationService}
-   * @return 如果{@link HttpServletRequest}带有参数{@link SecurityConfig#getParamVerifyCode()}，返回{@link VerifyCodeAuthenticationService}，
-   *     否则返回{@link CommonUserAuthenticationService}
-   */
+  private AuthenticationService root;
+
+  @Override
   public AuthenticationService getAuthenticationService() {
-    HttpServletRequest request = WebObjectsHolder.getRequest();
-    
-    if (StringUtils.isNotBlank(request.getParameter(SecureConstants.PARAMETER_VERIFY_CODE))) {
-      logger.info("验证码认证 {}", SecureConstants.PARAMETER_VERIFY_CODE);
-      return verifyCodeAuthenticationService;
-    } else {
-      logger.info("密码认证 {}", SecureConstants.PARAMETER_PASSWORD);
-      return commonUserAuthenticationService;
+    if (root != null) {
+      return root;
     }
+    
+    if (CollectionUtils.isEmpty(authChain)) {
+      throw new java.lang.IllegalStateException("未提供任何AuthenticationService的实现");
+    }
+    Collections.sort(authChain);
+    // 认证链
+    AuthenticationService temp = null;
+    for(AuthenticationService authenticationService : authChain) {
+      if (root == null) {
+        root = authenticationService;
+        temp = root;
+      } else {
+        temp.setNext(authenticationService);
+        temp = authenticationService;
+      }
+    }
+    AuthenticationService authenticationService = root;
+    while (authenticationService != null) {
+      logger.debug("认证Service {}, {}", authenticationService.getClass().getSimpleName(), authenticationService.getOrder());
+      authenticationService = authenticationService.getNext();
+    }
+    
+    return root;
   }
+  
+  
 }
