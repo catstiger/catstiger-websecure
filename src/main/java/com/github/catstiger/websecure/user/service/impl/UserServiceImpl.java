@@ -69,16 +69,43 @@ public class UserServiceImpl implements UserService {
       throw new AccountNotFoundException(SecureConstants.MSG_USER_NOT_FOUND);
     }
     if (Boolean.FALSE.equals(user.getIsEnabled())) {
-      throw new AccountStatusException("用户不可用");
+      throw new AccountStatusException(SecureConstants.MSG_ACCOUNT_DISABLED);
     }
     if (Boolean.TRUE.equals(user.getIsLocked())) {
-      throw new AccountStatusException("用户已经锁定");
+      throw new AccountStatusException(SecureConstants.MSG_ACCOUNT_LOCKED);
     }
     user = this.simplify(user);
     secureObjectsCache.putPrincipal(user);
     
     return user;
   }
+  
+
+  @Override
+  @Transactional(readOnly = true)
+  public User byNameOrMobile(String nameOrMobile) {
+    SQLReady sqlReady = SQLReady.select(User.class).where("username=?", nameOrMobile);
+    User user = queryUser(sqlReady);
+    
+    if (user == null) {
+      sqlReady = SQLReady.select(User.class).where("mobile=?", nameOrMobile);
+      user = queryUser(sqlReady);
+    }
+    
+    if (user == null) {
+      throw new AccountNotFoundException(SecureConstants.MSG_USER_NOT_FOUND);
+    }
+    
+    if (Boolean.FALSE.equals(user.getIsEnabled())) {
+      throw new AccountStatusException(SecureConstants.MSG_ACCOUNT_DISABLED);
+    }
+    if (Boolean.TRUE.equals(user.getIsLocked())) {
+      throw new AccountStatusException(SecureConstants.MSG_ACCOUNT_LOCKED);
+    }
+    
+    return simplify(user);
+  }
+
 
   @Override
   public User byId(Long id) {

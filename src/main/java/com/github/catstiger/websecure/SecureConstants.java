@@ -61,7 +61,8 @@ public final class SecureConstants {
   public static final String MSG_PASSWORD_MISTAKE = "用户名或密码错误";
   public static final String MSG_ACCESS_DENIED = "您的权限不足";
   public static final String MSG_ACCOUNT_EXPIRED = "您的账户已经过期";
-  public static final String MSG_ACCOUNT_LOCKED = "您的账户被锁定";
+  public static final String MSG_ACCOUNT_LOCKED = "您的账户被锁定，请联系管理员";
+  public static final String MSG_ACCOUNT_DISABLED = "您的账户被禁用，请联系管理员";
   public static final String MSG_VERIFY_CODE_MISTAKE = "手机验证码错误";
   public static final String MSG_CAPTCHA_MISTAKE = "验证码错误";
   

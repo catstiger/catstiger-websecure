@@ -52,7 +52,8 @@ public class DelegatingSubject implements Subject {
 	public Principal getPrincipal() {
 		if (user == null) {
 			try {
-				user = (User) getUserService().byName(authzToken.getPrincipal());
+			  //根据用户名或者手机号
+				user = (User) getUserService().byNameOrMobile(authzToken.getPrincipal());
 			} catch (Exception e) {
 				throw new LoginException(e.getMessage());
 			}

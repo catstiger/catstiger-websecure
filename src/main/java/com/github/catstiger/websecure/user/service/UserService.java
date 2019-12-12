@@ -36,6 +36,14 @@ public interface UserService extends PrincipalService {
   User byId(Long id);
   
   /**
+   * 根据用户名或者手机号获取用户。
+   * @param nameOrMobile 用户名或者手机号
+   * @return Instance of User
+   * @throws 
+   */
+  User byNameOrMobile(String nameOrMobile);
+  
+  /**
    * 注册一个新的用户,加密密码，使他处于可以登录的状态
    * @param user 包含{@code username}、{@code password}等初始信息
    * @return 已经注册成功的User对象。
