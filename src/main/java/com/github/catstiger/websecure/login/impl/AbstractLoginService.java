@@ -93,7 +93,7 @@ public abstract class AbstractLoginService implements LoginService {
       httpSessionTokenStorage.remove(); // 此次失败的登录，需要删除Session中的信息
       cookieTokenStorage.remove(); // 此次失败的登录，需要删除Cookies中的信息
       execFailureListeners(e);
-      doFailed(e); // 处理登录失败后的一些工作
+      result = doFailed(e); // 处理登录失败后的一些工作
       logger.warn("登录失败！{}", e.getMessage());
     }
 

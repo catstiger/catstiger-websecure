@@ -9,17 +9,17 @@ package com.github.catstiger.websecure.web;
 public class SecurityObjectsModel {
   private String token;
   private String msg;
-  private Boolean successed = true;
+  private Boolean success = true;
 
   /**
    * 构造登录状态对象
    * @param msg 提示信息
-   * @param successed 是否登录成功
+   * @param success 是否登录成功
    */
-  public SecurityObjectsModel(String msg, Boolean successed) {
+  public SecurityObjectsModel(String msg, Boolean success) {
     this.token = null;
     this.msg = msg;
-    this.successed = successed;
+    this.success = success;
   }
 
   /**
@@ -28,19 +28,19 @@ public class SecurityObjectsModel {
   public SecurityObjectsModel(String token) {
     this.token = token;
     this.msg = null;
-    this.successed = true;
+    this.success = true;
   }
   
   /**
    * 构造完整的登录状态对象
    * @param token token
    * @param msg 提示信息
-   * @param successed 是否成功
+   * @param success 是否成功
    */
-  public SecurityObjectsModel(String token, String msg, Boolean successed) {
+  public SecurityObjectsModel(String token, String msg, Boolean success) {
     this.token = token;
     this.msg = msg;
-    this.successed = successed;
+    this.success = success;
   }
 
   /**
@@ -56,7 +56,7 @@ public class SecurityObjectsModel {
   }
   
   /**
-   * 返回登录错误的信息，如果{@link #getSuccessed()}为{@code true}, 返回null
+   * 返回登录错误的信息，如果{@link #getSuccess()}为{@code true}, 返回null
    */
   public String getMsg() {
     return msg;
@@ -69,12 +69,12 @@ public class SecurityObjectsModel {
   /**
    * 用户认证是否成功
    */
-  public Boolean getSuccessed() {
-    return successed;
+  public Boolean getSuccess() {
+    return success;
   }
   
 
-  public void setSuccessed(Boolean successed) {
-    this.successed = successed;
+  public void setSuccess(Boolean successed) {
+    this.success = successed;
   }
 }

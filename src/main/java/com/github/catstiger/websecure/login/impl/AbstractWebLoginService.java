@@ -9,7 +9,6 @@ import com.github.catstiger.websecure.authz.AuthenticationServiceProvider;
 import com.github.catstiger.websecure.authz.AuthzToken;
 import com.github.catstiger.websecure.authz.AuthzTokenExtractor;
 import com.github.catstiger.websecure.login.CredentialException;
-import com.github.catstiger.websecure.login.LoginException;
 import com.github.catstiger.websecure.subject.Subject;
 import com.github.catstiger.websecure.subject.impl.DelegatingSubject;
 import com.github.catstiger.websecure.user.model.User;
@@ -34,15 +33,7 @@ public abstract class AbstractWebLoginService extends AbstractLoginService {
       throw new CredentialException(SecureConstants.MSG_PASSWORD_MISTAKE);
     }
     
-    DelegatingSubject subject = null;
-    try {
-      subject = new DelegatingSubject(userService, token);
-    } catch (LoginException e) {
-      //e.printStackTrace();
-      logger.info("登录失败，用户名不存在 {} {}", SecureConstants.MSG_USER_NOT_FOUND, token.getPrincipal());
-      throw new LoginException(SecureConstants.MSG_USER_NOT_FOUND);
-    }
-   
+    DelegatingSubject subject = new DelegatingSubject(userService, token); // 获取用户，如果失败，会抛出异常
     AuthenticationService authenticationService = authenticationServiceProvider.getAuthenticationService();
     try {
       authenticationService.verifyCredential(token, ((User) subject.getPrincipal()).getPassword());
