@@ -38,6 +38,7 @@ public class AuthzTokenExtractorImpl implements AuthzTokenExtractor {
     authToken.setPassword(password);
     authToken.setRememberMe(rememberMe);
     authToken.setVerifyCode(verifyCode);
+    
     authToken.setCaptcha(captcha);
     
     return authToken;

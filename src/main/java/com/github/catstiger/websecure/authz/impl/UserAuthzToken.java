@@ -46,7 +46,7 @@ public class UserAuthzToken implements AuthzToken, Serializable {
 
   @Override
   public String getPrincipal() {
-    return getUsername();
+    return getUsername() == null ? getMobile() : getUsername();
   }
 
   @Override

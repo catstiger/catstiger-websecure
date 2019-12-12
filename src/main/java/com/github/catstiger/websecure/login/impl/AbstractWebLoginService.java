@@ -26,9 +26,7 @@ public abstract class AbstractWebLoginService extends AbstractLoginService {
 
   @Override
   protected Subject attemptLogin(AuthzToken token) {
-    logger.debug("正在登录 {} {} {}", token.getPrincipal(), token.getCredentials(), token.getHost());
-    
-    if (token.getCredentials() == null) {
+    if (token.getCredentials() == null && token.getVerifyCode() == null) {
       logger.debug("登录失败 {} {}", SecureConstants.MSG_PASSWORD_MISTAKE, token.getPrincipal());
       throw new CredentialException(SecureConstants.MSG_PASSWORD_MISTAKE);
     }
@@ -39,7 +37,7 @@ public abstract class AbstractWebLoginService extends AbstractLoginService {
       authenticationService.verifyCredential(token, ((User) subject.getPrincipal()).getPassword());
       subject.setAuthenticated(true);
     } catch (Exception e) {
-      logger.info("登录失败，密码错误 {}", JSON.toJSONString(token));
+      logger.info("登录失败 {}", JSON.toJSONString(token));
       subject.setAuthenticated(false);
       throw new CredentialException(e.getMessage());
     }
