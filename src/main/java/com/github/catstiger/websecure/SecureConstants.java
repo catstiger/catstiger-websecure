@@ -1,5 +1,7 @@
 package com.github.catstiger.websecure;
 
+import com.github.catstiger.common.AppProps;
+
 public final class SecureConstants {
   /**
    * Cookie或者Token加密的"Salt",用于JWTSinger
@@ -13,32 +15,32 @@ public final class SecureConstants {
   /**
    * 根据Name查询{@code Principal}的Cache Name
    */
-  public static final String CACHE_NAME_PRINCIPAL_BY_NAME = "PRINCIPAL_BY_NAME__";
+  public static final String CACHE_NAME_PRINCIPAL_BY_NAME = AppProps.APP_PREFIX + "PRINCIPAL_BY_NAME__";
   
   /**
    * 授权给某个Subject的Authoriy的缓存Name
    */
-  public static final String CACHE_NAME_AUTHORITY_OF_SUBJECT = "AUTHORITY_OF_SUBJECT__";
+  public static final String CACHE_NAME_AUTHORITY_OF_SUBJECT = AppProps.APP_PREFIX + "AUTHORITY_OF_SUBJECT__";
   
   /**
    * 某个Auhtority可以访问的{@code Permission}的缓存NAME
    */
-  public static final String CACHE_NAME_PERMISSION_OF_AUTHORITY = "PERMISSION_OF_AUTHORITY__";
+  public static final String CACHE_NAME_PERMISSION_OF_AUTHORITY = AppProps.APP_PREFIX + "PERMISSION_OF_AUTHORITY__";
   
   /**
    * 用于缓存所有配置的资源的CacheName
    */
-  public static final String CACHE_NAME_CONFIGURABLE_RESOURCES = "CONFIGURABLE_RESOURCES__";
+  public static final String CACHE_NAME_CONFIGURABLE_RESOURCES = AppProps.APP_PREFIX + "CONFIGURABLE_RESOURCES__";
   
   /**
    * resources缓存Key
    */
-  public static final String CACHE_KEY_CONFIGURABLE_RESOURCES = "configurable_resources";
+  public static final String CACHE_KEY_CONFIGURABLE_RESOURCES = AppProps.APP_PREFIX + "configurable_resources";
   
   /**
    * 缓存名称，用于缓存角色和UI资源的对应关系
    */
-  public static final String CACHE_NAME_VIEWS_OF_ROLE = "VIEWS_OF_ROLE";
+  public static final String CACHE_NAME_VIEWS_OF_ROLE = AppProps.APP_PREFIX + "VIEWS_OF_ROLE";
   
   /**
    * Principal可以保存在{@code HttpSession}中，{@code SESSION_KEY_OF_PRINCIPAL}就是这个KEY值。
