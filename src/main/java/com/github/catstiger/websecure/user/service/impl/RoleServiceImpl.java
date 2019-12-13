@@ -90,7 +90,7 @@ public class RoleServiceImpl implements RoleService {
       }
       jdbcTemplate.update("update roles set descn=?, name=? where id=?", descn, name, role.getId());
     }
-
+    
     secureObjectsCache.clearPermissionsOfAuthority();
     secureObjectsCache.clearAuthoritiesOfPrincipal();
     
