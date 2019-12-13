@@ -14,6 +14,7 @@ import javax.persistence.Transient;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.catstiger.common.sql.BaseEntity;
+import com.github.catstiger.common.sql.annotation.Index;
 import com.github.catstiger.websecure.authc.Authority;
 import com.github.catstiger.websecure.authc.Permission;
 
@@ -24,6 +25,7 @@ public class Role extends BaseEntity implements Authority {
 	private String name;
 	private String descn;
 	private Boolean isSys = false;
+	private Long corpId;
 	/**
 	 * 此角色能够访问的资源
 	 */
@@ -107,7 +109,17 @@ public class Role extends BaseEntity implements Authority {
 	public void setIsSys(Boolean isSys) {
 		this.isSys = isSys;
 	}
+	
+	@Column(name = "corp_id")
+	@Index
+  public Long getCorpId() {
+    return corpId;
+  }
 
+  public void setCorpId(Long corpId) {
+    this.corpId = corpId;
+  }
+  
 	@Override
 	public int hashCode() {
 		final int prime = 31;

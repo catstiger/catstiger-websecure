@@ -33,6 +33,7 @@ public class User extends BaseEntity implements Principal {
 	private Date lockTime;
 	private Boolean isSys = false;
 	private String mobile;
+	private Long corpId;
 
 	/**
 	 * 所具有的角色
@@ -171,6 +172,16 @@ public class User extends BaseEntity implements Principal {
 	public void setLockTime(Date lockTime) {
 		this.lockTime = lockTime;
 	}
+
+	@Column(name = "corp_id")
+	@Index
+  public Long getCorpId() {
+    return corpId;
+  }
+
+  public void setCorpId(Long corpId) {
+    this.corpId = corpId;
+  }
 
 	@Override
 	@Transient
