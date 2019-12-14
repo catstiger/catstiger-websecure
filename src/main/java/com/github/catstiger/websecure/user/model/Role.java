@@ -1,6 +1,7 @@
 package com.github.catstiger.websecure.user.model;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,6 +27,9 @@ public class Role extends BaseEntity implements Authority {
 	private String descn;
 	private Boolean isSys = false;
 	private Long corpId;
+	private Long operatorId;
+  private String operator;
+  private Date lastModified;
 	/**
 	 * 此角色能够访问的资源
 	 */
@@ -118,6 +122,34 @@ public class Role extends BaseEntity implements Authority {
 
   public void setCorpId(Long corpId) {
     this.corpId = corpId;
+  }
+  
+
+  @Column(name = "operator_id")
+  public Long getOperatorId() {
+    return operatorId;
+  }
+
+  public void setOperatorId(Long operatorId) {
+    this.operatorId = operatorId;
+  }
+
+  @Column(name = "operator")
+  public String getOperator() {
+    return operator;
+  }
+
+  public void setOperator(String operator) {
+    this.operator = operator;
+  }
+
+  @Column(name = "last_modified")
+  public Date getLastModified() {
+    return lastModified;
+  }
+
+  public void setLastModified(Date lastModified) {
+    this.lastModified = lastModified;
   }
   
 	@Override

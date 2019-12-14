@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.stereotype.Service;
@@ -20,8 +21,10 @@ import com.github.catstiger.common.sql.id.IdGen;
 import com.github.catstiger.common.util.Exceptions;
 import com.github.catstiger.websecure.authc.Permission;
 import com.github.catstiger.websecure.cache.SecureObjectsCache;
+import com.github.catstiger.websecure.user.UserHolder;
 import com.github.catstiger.websecure.user.model.Resource;
 import com.github.catstiger.websecure.user.model.Role;
+import com.github.catstiger.websecure.user.model.User;
 import com.github.catstiger.websecure.user.service.ResourceService;
 import com.github.catstiger.websecure.user.service.RoleService;
 import com.github.catstiger.websecure.user.service.RoleUtil;
@@ -66,6 +69,12 @@ public class RoleServiceImpl implements RoleService {
     role.setId(idGen.nextId());
     role.setDescn(descn);
     role.setIsSys(isSys);
+    role.setLastModified(DateTime.now().toDate());
+    
+    User user = UserHolder.getUser();
+    if (user != null) {
+      //TODO:...
+    }
     
 
     SQLReady sqlReady = new SQLRequest(Role.class).entity(role).insert();

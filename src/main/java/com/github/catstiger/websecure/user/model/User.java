@@ -34,6 +34,10 @@ public class User extends BaseEntity implements Principal {
 	private Boolean isSys = false;
 	private String mobile;
 	private Long corpId;
+	private Long operatorId;
+	private String operator;
+	private Date lastModified;
+	private String realName;
 
 	/**
 	 * 所具有的角色
@@ -183,6 +187,44 @@ public class User extends BaseEntity implements Principal {
     this.corpId = corpId;
   }
 
+  @Column(name = "operator_id")
+  public Long getOperatorId() {
+    return operatorId;
+  }
+
+  public void setOperatorId(Long operatorId) {
+    this.operatorId = operatorId;
+  }
+
+  @Column(name = "operator")
+  public String getOperator() {
+    return operator;
+  }
+
+  public void setOperator(String operator) {
+    this.operator = operator;
+  }
+
+  @Column(name = "last_modified")
+  public Date getLastModified() {
+    return lastModified;
+  }
+
+  public void setLastModified(Date lastModified) {
+    this.lastModified = lastModified;
+  }
+  
+
+  @Column(name = "real_name", length = 30)
+  public String getRealName() {
+    return realName;
+  }
+
+  public void setRealName(String realName) {
+    this.realName = realName;
+  }
+
+  
 	@Override
 	@Transient
 	public String getName() {

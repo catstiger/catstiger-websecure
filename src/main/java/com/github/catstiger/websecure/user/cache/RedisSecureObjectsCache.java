@@ -222,16 +222,48 @@ public class RedisSecureObjectsCache implements SecureObjectsCache {
    * 用于定义缓存过期时间和空闲时间
    *
    */
-  private static final class Eviction {
+  public static final class Eviction {
     private long ttl;
     private TimeUnit ttlUnit = TimeUnit.SECONDS;
     private long maxIdleTime;
     private TimeUnit maxIdleUnit = TimeUnit.SECONDS;
 
     // 都使用统一的过期配置，可以根据应用情况调整
-    private Eviction(String cacheName, long ttl, long maxIdleTime) {
+    public Eviction(String cacheName, long ttl, long maxIdleTime) {
       this.ttl = ttl;
       this.maxIdleTime = maxIdleTime;
+    }
+    
+    public long getTtl() {
+      return ttl;
+    }
+
+    public void setTtl(long ttl) {
+      this.ttl = ttl;
+    }
+
+    public TimeUnit getTtlUnit() {
+      return ttlUnit;
+    }
+
+    public void setTtlUnit(TimeUnit ttlUnit) {
+      this.ttlUnit = ttlUnit;
+    }
+
+    public long getMaxIdleTime() {
+      return maxIdleTime;
+    }
+
+    public void setMaxIdleTime(long maxIdleTime) {
+      this.maxIdleTime = maxIdleTime;
+    }
+
+    public TimeUnit getMaxIdleUnit() {
+      return maxIdleUnit;
+    }
+
+    public void setMaxIdleUnit(TimeUnit maxIdleUnit) {
+      this.maxIdleUnit = maxIdleUnit;
     }
   }
 

@@ -38,3 +38,12 @@ ALTER TABLE roles_resources  ADD UNIQUE ( roles_id,resources_id);
 insert into roles(id,name,descn,is_sys,corp_id) values (0, 'administrator', '系统管理员角色', 1, 0);
 insert into users(id,username,password,regist_time,is_enabled,is_locked,is_sys, corp_id) values (0, 'admin', 'f65921cf38f2e3eefde1a08d62a7656b',current_date(), 1, 0, 1, 0);
 insert into users_roles(users_id,roles_id) values (0,0);
+
+alter table roles add column operator_id bigint;
+alter table roles add column operator varchar(30);
+alter table roles add column last_modified datetime default now();
+
+alter table users add column operator_id bigint;
+alter table users add column operator varchar(30);
+alter table users add column last_modified datetime default now();
+alter table users add column real_name varchar(30);
