@@ -20,7 +20,7 @@ public interface RoleService {
    * @param isSys 是否系统角色，如果是，则不能修改名称，不能删除角色
    * @return 创建的角色实例
    */
-  Role create(String name, String descn, Boolean isSys);
+  Role create(String name, String descn, Boolean isSys, Long corpId);
   
   /**
    * 返回角色可以访问/操作的所有Permission，如果没有，返回{@code Collections#emptySet()}

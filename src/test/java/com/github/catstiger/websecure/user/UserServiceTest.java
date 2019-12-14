@@ -58,7 +58,7 @@ public class UserServiceTest {
     Resource res = new Resource("/admin");
    
     final String roleName = "user";
-    roleService.create(roleName, "", false);
+    roleService.create(roleName, "", false, 0L);
     
     User user1 = new User();
     

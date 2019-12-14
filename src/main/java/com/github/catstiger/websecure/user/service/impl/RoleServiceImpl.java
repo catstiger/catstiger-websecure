@@ -24,6 +24,7 @@ import com.github.catstiger.websecure.user.model.Resource;
 import com.github.catstiger.websecure.user.model.Role;
 import com.github.catstiger.websecure.user.service.ResourceService;
 import com.github.catstiger.websecure.user.service.RoleService;
+import com.github.catstiger.websecure.user.service.RoleUtil;
 
 @Service
 public class RoleServiceImpl implements RoleService {
@@ -37,7 +38,7 @@ public class RoleServiceImpl implements RoleService {
   private IdGen idGen;
  
 
-  // 小表，而且unique索引，因此不做缓存处理
+  
   @Override
   @Transactional(readOnly = true)
   public Role byName(String name) {
@@ -48,31 +49,39 @@ public class RoleServiceImpl implements RoleService {
 
   @Override
   @Transactional
-  public Role create(String name, String descn, Boolean isSys) {
+  public Role create(String name, String descn, Boolean isSys, Long corpId) {
     Assert.isTrue(StringUtils.isNotBlank(name), "角色名称不可为空。");
-    Long c = jdbcTemplate.queryForObject("select count(*) from roles where name=?", Long.class, name);
+    
+    Role role = new Role(name);
+    role.setCorpId(corpId);
+    
+    String wrapName = RoleUtil.wrapName(role); // wrap name, 确保角色名称全局唯一
+    Long c = jdbcTemplate.queryForObject("select count(*) from roles where name=?", Long.class, wrapName);
 
     if (c > 0L) {
       throw new IllegalArgumentException("角色名称" + name + "已经存在");
     }
-    Role role = new Role(name);
+    
+    role.setName(wrapName);
     role.setId(idGen.nextId());
     role.setDescn(descn);
     role.setIsSys(isSys);
+    
 
     SQLReady sqlReady = new SQLRequest(Role.class).entity(role).insert();
     jdbcTemplate.update(sqlReady.getSql(), sqlReady.getArgs());
+    
     secureObjectsCache.clearPermissions(); // 清除全部资源缓存
     return role;
   }
 
-  /**
-   * 会导致缓存被完全清空！
-   */
   @Transactional
-  public Role update(Long id, String name, String descn) {
+  public Role update(Long id, String name, String descn, Long corpId) {
     Assert.notNull(id, "角色ID不可为空");
     Assert.isTrue(StringUtils.isNotBlank(name), "角色名称不可为空。");
+    Assert.notNull(corpId, "corpId不可为空");
+    
+    String wrapName = RoleUtil.wrapName(name, corpId);
 
     SQLReady sqlReady = new SQLRequest(Role.class).usingAlias(true).select().append(" WHERE id=?", id);
     Role role = queryRole(sqlReady);
@@ -82,13 +91,13 @@ public class RoleServiceImpl implements RoleService {
     }
 
     if (role.getIsSys()) {
-      jdbcTemplate.update("update roles set descn=?, where id=?", descn, role.getId()); // 系统用户不能修改名称
+      jdbcTemplate.update("update roles set descn=?, where id=?", descn, role.getId()); // 系统角色不能修改名称
     } else {
-      Long c = jdbcTemplate.queryForObject("select count(*) from roles where name=? and id<>? ", Long.class, name, role.getId());
+      Long c = jdbcTemplate.queryForObject("select count(*) from roles where name=? and id<>? ", Long.class, wrapName, role.getId());
       if (c > 0) {
         throw new IllegalArgumentException("角色" + name + "已经存在");
       }
-      jdbcTemplate.update("update roles set descn=?, name=? where id=?", descn, name, role.getId());
+      jdbcTemplate.update("update roles set descn=?, name=? where id=?", descn, wrapName, role.getId());
     }
     
     secureObjectsCache.clearPermissionsOfAuthority();
@@ -103,8 +112,8 @@ public class RoleServiceImpl implements RoleService {
    * 会导致缓存被完全清空！
    */
   @Transactional
-  public void remove(String name) {
-    Role role = this.byName(name);
+  public void remove(String wrappedRoleName) {
+    Role role = this.byName(wrappedRoleName);
     if (role == null) {
       return;
     }
@@ -126,13 +135,16 @@ public class RoleServiceImpl implements RoleService {
   public Collection<Permission> getPermissionsOfRole(Role role) {
     Assert.notNull(role, "Role must not be null.");
     Assert.notNull(role.getName(), "Role name must not be null.");
+    Assert.notNull(role.getCorpId(), "CorpID不能为空");
 
-    Collection<Permission> perms = secureObjectsCache.getPermissionsOfAuthority(role.getName());
+    String wrapName = RoleUtil.wrapName(role);
+    
+    Collection<Permission> perms = secureObjectsCache.getPermissionsOfAuthority(wrapName);
     if (CollectionUtils.isNotEmpty(perms)) {
       return perms;
     }
 
-    role = byName(role.getName());
+    role = byName(wrapName);
     Assert.notNull(role, "角色不存在" + role.getName());
 
     List<Resource> resources = resourcesOfRole(role.getId());
@@ -141,7 +153,7 @@ public class RoleServiceImpl implements RoleService {
       Resource res = new Resource(r.getUrl());
       permissions.add(res);
     });
-    secureObjectsCache.putPermissionsOfAuthority(role.getName(), permissions); // 缓存角色的授权
+    secureObjectsCache.putPermissionsOfAuthority(wrapName, permissions); // 缓存角色的授权
     return permissions;
   }
 
@@ -170,6 +182,7 @@ public class RoleServiceImpl implements RoleService {
   @Override
   @Transactional
   public void grant(String roleName, String permission) {
+    
     Role role = byName(roleName);
     Resource resource = resourceService.byUrl(permission);
     Long c = jdbcTemplate.queryForObject("select count(*) from roles_resources where roles_id=? and resources_id=?", Long.class, role.getId(),

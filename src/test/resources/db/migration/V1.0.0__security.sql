@@ -11,13 +11,14 @@ create table users(
 	is_sys tinyint default 0,
 	mobile varchar(20) unique,
 	openid varchar(48),
-	id bigint primary key );
+	id bigint primary key, corp_id bigint );
 
 create table roles(
 	name varchar(60) not null unique,
 	descn varchar(255),
 	is_sys tinyint default 0,
-	id bigint primary key );
+	id bigint primary key,
+	corp_id bigint);
 
 create table resources(
     id bigint primary key,
@@ -34,6 +35,6 @@ create table roles_resources(roles_id bigint,resources_id bigint);
 
 ALTER TABLE roles_resources  ADD UNIQUE ( roles_id,resources_id);
 
-insert into roles(id,name,descn,is_sys) values (0, 'administrator', '系统管理员角色', 1);
-insert into users(id,username,password,regist_time,is_enabled,is_locked,is_sys) values (0, 'admin', 'f65921cf38f2e3eefde1a08d62a7656b',current_date(), 1, 0, 1);
+insert into roles(id,name,descn,is_sys,corp_id) values (0, 'administrator', '系统管理员角色', 1, 0);
+insert into users(id,username,password,regist_time,is_enabled,is_locked,is_sys, corp_id) values (0, 'admin', 'f65921cf38f2e3eefde1a08d62a7656b',current_date(), 1, 0, 1, 0);
 insert into users_roles(users_id,roles_id) values (0,0);

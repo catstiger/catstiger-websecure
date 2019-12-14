@@ -81,8 +81,8 @@ public class SubjectTest {
     Assert.notNull(principal, "Principal must not be null.");
     Assert.isTrue(subject.isPermitted("/admin"), "Admin 可以访问 /admin");
     
-    roleService.create("role1", "", false);
-    roleService.create("role2", "", false);
+    roleService.create("role1", "", false, 0L);
+    roleService.create("role2", "", false, 0L);
     
     userService.grant("admin", "role1");
     Collection<Role> rs = userService.getRolesByUser((User) principal);
