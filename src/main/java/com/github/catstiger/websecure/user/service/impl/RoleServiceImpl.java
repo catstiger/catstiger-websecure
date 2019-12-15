@@ -73,9 +73,9 @@ public class RoleServiceImpl implements RoleService {
     
     User user = UserHolder.getUser();
     if (user != null) {
-      //TODO:...
+      role.setOperator(user.getRealName());
+      role.setOperatorId(user.getId());
     }
-    
 
     SQLReady sqlReady = new SQLRequest(Role.class).entity(role).insert();
     jdbcTemplate.update(sqlReady.getSql(), sqlReady.getArgs());
@@ -98,15 +98,23 @@ public class RoleServiceImpl implements RoleService {
     if (role == null) {
       throw new IllegalArgumentException("角色" + name + "不存在");
     }
+    
+    User user = UserHolder.getUser();
+    if (user != null) {
+      role.setOperator(user.getRealName());
+      role.setOperatorId(user.getId());
+    }
 
     if (role.getIsSys()) {
-      jdbcTemplate.update("update roles set descn=?, where id=?", descn, role.getId()); // 系统角色不能修改名称
+      jdbcTemplate.update("update roles set descn=?, operator=?, operator_id=?, last_modified=now() where id=?", 
+          descn, role.getOperator(), role.getOperatorId(), role.getId()); // 系统角色不能修改名称
     } else {
       Long c = jdbcTemplate.queryForObject("select count(*) from roles where name=? and id<>? ", Long.class, wrapName, role.getId());
       if (c > 0) {
         throw new IllegalArgumentException("角色" + name + "已经存在");
       }
-      jdbcTemplate.update("update roles set descn=?, name=? where id=?", descn, wrapName, role.getId());
+      jdbcTemplate.update("update roles set descn=?, name=? , operator=?, operator_id=?, last_modified=now() where id=?", 
+          descn, wrapName, role.getOperator(), role.getOperatorId(), role.getId());
     }
     
     secureObjectsCache.clearPermissionsOfAuthority();

@@ -13,9 +13,10 @@ import com.github.catstiger.websecure.authc.Principal;
  * @author samlee
  *
  */
-@SuppressWarnings("serial")
 public final class Anonymous implements Principal, Serializable {
-	public static final String ANONYMOUS_NAME = "@ANONYMOUS_USER_";
+  private static final long serialVersionUID = 1910901081853086142L;
+
+  public static final String ANONYMOUS_NAME = "@ANONYMOUS_USER_";
 
 	public static final Anonymous INSTANCE = new Anonymous();
 

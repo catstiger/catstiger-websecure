@@ -19,10 +19,11 @@ import com.github.catstiger.common.sql.annotation.Index;
 import com.github.catstiger.websecure.authc.Authority;
 import com.github.catstiger.websecure.authc.Permission;
 
-@SuppressWarnings("serial")
 @Entity
 @Table(name = "roles")
 public class Role extends BaseEntity implements Authority {
+	private static final long serialVersionUID = 877463916043107551L;
+  
 	private String name;
 	private String descn;
 	private Boolean isSys = false;
@@ -143,6 +144,7 @@ public class Role extends BaseEntity implements Authority {
     this.operator = operator;
   }
 
+  @JSONField(format = "yyyy-MM-dd HH:mm")
   @Column(name = "last_modified")
   public Date getLastModified() {
     return lastModified;

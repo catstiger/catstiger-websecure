@@ -25,10 +25,11 @@ import com.github.catstiger.websecure.authc.Permission;
  * @author leesam
  *
  */
-@SuppressWarnings("serial")
 @Entity
 @Table(name = "resources")
 public class Resource extends BaseEntity implements Permission, Comparable<Resource> {
+  private static final long serialVersionUID = -1897416121976736437L;
+  
   private String descn;
   private String url;
   private Long parentId;

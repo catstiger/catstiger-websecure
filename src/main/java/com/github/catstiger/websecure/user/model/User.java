@@ -19,11 +19,12 @@ import com.github.catstiger.common.sql.annotation.Index;
 import com.github.catstiger.websecure.authc.Authority;
 import com.github.catstiger.websecure.authc.Principal;
 
-@SuppressWarnings("serial")
 @Entity
 @Table(name = "users")
 public class User extends BaseEntity implements Principal {
-	private String username;
+  private static final long serialVersionUID = -7060358439282679847L;
+  
+  private String username;
 	private String password;
 	private String host;
 	private Date registTime;
@@ -205,6 +206,7 @@ public class User extends BaseEntity implements Principal {
     this.operator = operator;
   }
 
+  @JSONField(format = "yyyy-MM-dd HH:mm")
   @Column(name = "last_modified")
   public Date getLastModified() {
     return lastModified;
