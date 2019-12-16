@@ -49,5 +49,6 @@ alter table users add column last_modified datetime default now();
 alter table users add column real_name varchar(30);
 alter table users add column dept_id bigint;
 alter table users add column dept_name varchar(30);
+alter table users add column use_init_pass tinyint default 0;
 
 create index idx_users_dept_id on users(dept_id);

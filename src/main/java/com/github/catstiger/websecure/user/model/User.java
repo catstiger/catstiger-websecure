@@ -41,6 +41,10 @@ public class User extends BaseEntity implements Principal {
 	private String realName;
 	private Long deptId;
 	private String deptName;
+	/**
+	 * 是否正在使用初始密码
+	 */
+	private Boolean useInitPass = false;
 
 	/**
 	 * 所具有的角色
@@ -247,6 +251,16 @@ public class User extends BaseEntity implements Principal {
     this.deptName = deptName;
   }
   
+
+  @Column(name = "use_init_pass", columnDefinition = "tinyint default 0")
+  public Boolean getUseInitPass() {
+    return useInitPass;
+  }
+
+  public void setUseInitPass(Boolean useInitPass) {
+    this.useInitPass = useInitPass;
+  }
+  
 	@Override
 	@Transient
 	public String getName() {
@@ -302,4 +316,5 @@ public class User extends BaseEntity implements Principal {
     }
     return true;
   }
+
 }
