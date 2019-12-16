@@ -39,6 +39,8 @@ public class User extends BaseEntity implements Principal {
 	private String operator;
 	private Date lastModified;
 	private String realName;
+	private Long deptId;
+	private String deptName;
 
 	/**
 	 * 所具有的角色
@@ -225,7 +227,25 @@ public class User extends BaseEntity implements Principal {
   public void setRealName(String realName) {
     this.realName = realName;
   }
+  
+  @Column(name = "dept_id")
+  @Index
+  public Long getDeptId() {
+    return deptId;
+  }
 
+  public void setDeptId(Long deptId) {
+    this.deptId = deptId;
+  }
+
+  @Column(name = "dept_name", length = 30)
+  public String getDeptName() {
+    return deptName;
+  }
+
+  public void setDeptName(String deptName) {
+    this.deptName = deptName;
+  }
   
 	@Override
 	@Transient
@@ -282,5 +302,4 @@ public class User extends BaseEntity implements Principal {
     }
     return true;
   }
-
 }
