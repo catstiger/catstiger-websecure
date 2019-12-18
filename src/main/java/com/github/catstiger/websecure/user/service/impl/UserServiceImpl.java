@@ -156,7 +156,8 @@ public class UserServiceImpl implements UserService {
     if (count > 0) {
       throw Exceptions.unchecked("您输入的登录名'" + user.getUsername() + "'已经存在.");
     }
-    count = sqlExecutor.one("select count(*) from users where mobile=? and mobile is not null and TRIM(mobile)<>''", Long.class, user.getMobile());
+    count = sqlExecutor.one("select count(*) from users where mobile=? and mobile is not null and TRIM(mobile)<>''",
+        Long.class, user.getMobile());
     // 验证重复的手机号
     if (count > 0) {
       throw Exceptions.unchecked("您输入的手机号'" + user.getMobile() + "'已经存在.");
