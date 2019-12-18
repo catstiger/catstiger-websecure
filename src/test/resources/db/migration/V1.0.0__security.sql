@@ -52,3 +52,5 @@ alter table users add column dept_name varchar(30);
 alter table users add column use_init_pass tinyint default 0;
 
 create index idx_users_dept_id on users(dept_id);
+alter table users add column position varchar(20);
+alter table users add column email varchar(30);

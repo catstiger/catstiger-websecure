@@ -41,6 +41,8 @@ public class User extends BaseEntity implements Principal {
 	private String realName;
 	private Long deptId;
 	private String deptName;
+	private String position;
+	private String email;
 	/**
 	 * 是否正在使用初始密码
 	 */
@@ -260,7 +262,29 @@ public class User extends BaseEntity implements Principal {
   public void setUseInitPass(Boolean useInitPass) {
     this.useInitPass = useInitPass;
   }
-  
+
+  /**
+   * 职位
+   * @return
+   */
+  @Column(name = "position", length = 20)
+  public String getPosition() {
+    return position;
+  }
+
+  public void setPosition(String position) {
+    this.position = position;
+  }
+
+  @Column(name = "email", length = 30)
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
 	@Override
 	@Transient
 	public String getName() {

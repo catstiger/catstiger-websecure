@@ -433,6 +433,8 @@ public class UserServiceImpl implements UserService {
       simplifyUser.setMobile(user.getMobile());
       simplifyUser.setRealName(user.getRealName());
       simplifyUser.setUseInitPass(user.getUseInitPass());
+      simplifyUser.setPosition(user.getPosition());
+      simplifyUser.setEmail(user.getEmail());
 
       Collection<Role> roles = this.getRolesByUser(user);
       Set<Role> transientRoles = new HashSet<>(roles.size());
